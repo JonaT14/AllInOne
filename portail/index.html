@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portail modulaire des applications du cabinet">
+  <title>Portail du cabinet</title>
+  <link rel="icon" href="icone.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="portail.css">
+  <script src="theme.js"></script>
+  <script type="module" src="portail.js"></script>
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <div id="layout">
+    <aside class="sidebar" id="sidebar" aria-label="Navigation du cabinet">
+      <a class="brand" href="#accueil">
+        <span class="brand-icon" data-icon="cross"></span>
+        <span><strong>Portail du cabinet</strong><small>ESPACE PROFESSIONNEL</small></span>
+      </a>
+      <nav aria-label="Navigation principale">
+        <p class="nav-label">ESPACE DE TRAVAIL</p>
+        <a class="nav-link" href="#accueil" data-route="accueil"><span data-icon="home"></span>Accueil</a>
+        <div id="module-nav"></div>
+        <p class="nav-label upcoming-label">EMPLACEMENTS FUTURS</p>
+        <div id="future-nav"></div>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="side-avatar" data-icon="building"></span>
+        <div><strong>Mon cabinet</strong><small>Aperçu de travail</small></div>
+      </div>
+    </aside>
+    <button id="scrim" aria-label="Fermer le menu" hidden></button>
+    <div class="workspace">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <button class="icon-button menu-button" id="menu" type="button" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button>
+          <span class="breadcrumb-root">Espace cabinet</span><span class="crumb-separator" aria-hidden="true">/</span>
+          <strong id="breadcrumb">Accueil</strong>
+        </div>
+        <div class="top-actions">
+          <span class="badge"><span></span>Démo locale</span>
+          <button id="theme" class="icon-button" type="button" aria-label="Mode sombre" aria-pressed="false"></button>
+        </div>
+      </header>
+      <main id="contenu" tabindex="-1">
+        <section id="accueil" class="home-view" aria-labelledby="hero-title">
+          <div class="content">
+            <div class="hero">
+              <svg class="hero-pattern" viewBox="0 0 420 310" fill="none" aria-hidden="true">
+                <path d="M260 3H89a23 23 0 0 0-23 23v88H-22m-35 56H88a33 33 0 0 0 33-33V81a24 24 0 0 1 24-24h127M-5 221h120a61 61 0 0 0 61-61v-26a23 23 0 0 1 23-23h42m-149 196v-16a25 25 0 0 1 25-25h47a70 70 0 0 0 70-70v-29m-32 140v-10a25 25 0 0 1 25-25h88a26 26 0 0 0 26-26v-81a25 25 0 0 1 25-25h49M317 1v57a23 23 0 0 0 23 23h89m-31 226v-65a23 23 0 0 1 23-23" stroke="currentColor"/>
+                <circle cx="66" cy="114" r="4" fill="currentColor"/><circle cx="176" cy="153" r="4" fill="currentColor"/><circle cx="341" cy="207" r="4" fill="currentColor"/><circle cx="317" cy="40" r="4" fill="currentColor"/>
+                <rect x="230" y="73" width="95" height="95" rx="26" fill="#ffffff12" stroke="currentColor"/>
+                <path d="M277.5 100v41m-20.5-20.5h41" stroke="#e0fffe" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+              <div class="hero-copy">
+                <p class="eyebrow hero-label"><span data-icon="cross"></span> VOTRE ESPACE PROFESSIONNEL</p>
+                <h1 id="hero-title">Portail du cabinet</h1>
+                <p>Préparez vos consultations et suivez votre trousse d’urgence depuis un même espace.</p>
+              </div>
+            </div>
+            <section class="apps" aria-labelledby="apps-title">
+              <div class="section-heading">
+                <div><p class="eyebrow">ESPACE DE TRAVAIL</p><h2 id="apps-title">Applications du cabinet</h2></div>
+                <span class="section-count" id="module-count"></span>
+              </div>
+              <div class="app-grid" id="module-cards"></div>
+            </section>
+            <div class="data-note">
+              <span class="note-icon" data-icon="shield"></span>
+              <div><strong>Des données séparées par application</strong><p>Les applications de démonstration utilisent des stockages séparés. Le code sommeil peut être remis au praticien pour importer les réponses.</p></div>
+            </div>
+            <footer class="footer"><span>Portail du cabinet</span><span>Prototype · À tester avec des données fictives</span></footer>
+          </div>
+        </section>
+        <div id="module-views"></div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

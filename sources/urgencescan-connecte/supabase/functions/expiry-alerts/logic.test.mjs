@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {localClock,dueProducts,digestText} from './logic.mjs';
+assert.equal(localClock(new Date('2026-10-24T06:00:00Z'),'Europe/Paris').hour,8);
+assert.equal(localClock(new Date('2026-10-26T07:00:00Z'),'Europe/Paris').hour,8);
+const data=[{name:'Périmé',expiry:'2026-10-23',alertDays:0},{name:'Aujourd’hui',expiry:'2026-10-24',alertDays:0},{name:'Plus tard',expiry:'2026-11-03',alertDays:5}];
+const config={use_product_threshold:true,include_expired:true,lookahead:15};
+assert.deepEqual(dueProducts(data,config,'2026-10-24').map(x=>x.name),['Périmé','Aujourd’hui']);
+assert.equal(dueProducts(data,{...config,use_product_threshold:false},'2026-10-24').length,3);
+assert.equal(dueProducts(data,{...config,include_expired:false},'2026-10-24').length,1);
+assert.equal(dueProducts([{expiry:'invalid'}],config,'2026-10-24').length,0);
+assert.match(digestText('Cabinet',[],true),/Test de notification/);
+console.log('Notifications : seuils, dates, fuseau horaire et changement d’heure vérifiés.');

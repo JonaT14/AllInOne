@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OverMed · Questionnaire sommeil</title>
+<style>
+:root{color-scheme:light dark;--bg:#eff6f6;--card:#fff;--ink:#163137;--accent:#176765}
+:root[data-theme=dark]{color-scheme:dark;--bg:#101c23;--card:#192b34;--ink:#eef7f7;--accent:#a1e2dc}
+:root[data-theme=light]{color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){--bg:#101c23;--card:#192b34;--ink:#eef7f7;--accent:#a1e2dc}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui}main{max-width:800px;margin:auto;padding:clamp(16px,5vw,42px)}
+header,section{background:var(--card);border-radius:16px;padding:clamp(16px,4vw,28px);margin-bottom:16px}h1,h2{margin:0 0 .5em}p{margin:.5em 0}small{color:var(--accent);font-weight:bold}
+fieldset{border:0;border-top:1px solid #78949555;margin:16px 0 0;padding:10px 0 0;min-width:0}legend{font-weight:650;padding-right:8px}label{display:block;padding:4px 0}
+input,select,textarea,button{font:inherit}input:not([type=radio],[type=checkbox]),select,textarea{max-width:100%;padding:7px}textarea{width:100%}
+button{background:#15625f;color:#fff;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
+#result{overflow-wrap:anywhere}#code{width:100%;min-height:90px}
+</style>
+<main><header><small>OVERMED · ESPACE PATIENT</small><h1>Questionnaire sommeil</h1>
+<p>Répondez aux questions que vous pouvez renseigner. Les champs peuvent rester vides. Ce questionnaire est une aide à la consultation.</p>
+<p>Le code contient vos réponses sous une forme lisible par l’outil du praticien. Remettez-le directement au cabinet. Évitez les informations identifiantes dans les réponses libres.</p></header>
+<form id="form"><div id="questions"></div><section><button>Générer mon code</button><p id="notice" role="status"></p>
+<div id="result" hidden><label for="code">Code à remettre au praticien</label><textarea id="code" readonly></textarea><button type="button" id="select">Sélectionner le code</button></div></section></form></main>
+<script src="format.js"></script><script src="questionnaire.js"></script><script src="portail-theme.js"></script></html>

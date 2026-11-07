@@ -1,0 +1,10 @@
+import {readFileSync} from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const source=readFileSync(new URL('../source/v2.js',import.meta.url),'utf8');const start=source.indexOf('function validateImport('),end=source.indexOf('window.importDialog',start);
+const context={uid:()=>Math.random().toString(36),Date,Set};vm.createContext(context);vm.runInContext(source.slice(start,end)+';this.validate=validateImport',context);
+const row={id:'one',name:'Produit',expiry:'2026-12-31',lot:'LOT-1',cip:'3400935955838',alertDays:90};
+assert.equal(context.validate([row]).length,1);assert.equal(context.validate({format:'UrgenceScan',version:2,inventory:[row]})[0].lot,'LOT-1');
+assert.throws(()=>context.validate([{...row,expiry:'2026-02-30'}]),/date impossible/);assert.throws(()=>context.validate([{...row,alertDays:-1}]),/seuil invalide/);
+assert.notEqual(context.validate([row,row])[0].id,context.validate([row,row])[1].id);
+assert.equal(context.validate([{...row,photo:'javascript:alert(1)'}])[0].photo,undefined);
+assert.throws(()=>context.validate(new Array(2001).fill(row)),/maximum/);
+console.log('Import : ancien format, nouveau format, dates, seuils, doublons et images contrôlés.');

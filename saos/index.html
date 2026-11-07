@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body style="margin:0">
+<title>OverMed — Dépistage SAOS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+
+<style>
+/* Nuit claire : bandeau nuit + cartes de scores ; rail d'étapes | formulaire | courrier */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --sunk:#F7FAF8; --ink:#10241C; --ink2:#33473F; --muted:#546A60; --line:#DDE6E1; --line2:#D3DED8;
+  --accent:#12805C; --accent-soft:#E2F2EA; --accent-ink:#0E6B4C; --on-accent:#FFFFFF;
+  --night:#0F2A22; --night2:#16382D; --night-line:#2A5444; --on-night:#EAF5EF; --night-muted:#A9C7B9; --trace:#4FD1A0;
+  --logo-bg:#1D4638; --logo-moon:#BFE8D4; --theme-on:#EAF5EF; --theme-on-ink:#0F2A22;
+  --hi-bg:#0F2A22; --hi-line:#0F2A22; --next:#0F2A22; --on-next:#FFFFFF;
+  --seg:#2A5444; --seg-done:#7FD9B0;
+  --paper:#FFFFFF; --paper-ink:#1E2B25;
+  --ok:#17704F; --ok-bg:#E0F3E9; --warn:#8A5200; --warn-bg:#FDF1DE; --bad:#8E1F2C; --bad-strong:#B42D3A; --bad-bg:#FBEDEF;
+  --shadow:0 6px 20px rgba(15,42,34,.07);
+  --f-body:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-head:"Bricolage Grotesque",Figtree,system-ui,sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --f-letter:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1411; --surface:#14211C; --sunk:#101A16; --ink:#E6F0EB; --ink2:#C2D3CB; --muted:#94ADA2; --line:#24382F; --line2:#2E463B;
+  --accent:#3DDC97; --accent-soft:#163A2C; --accent-ink:#7FEBBE; --on-accent:#06281C;
+  --night:#10241D; --night2:#17332A; --night-line:#2C5A48; --on-night:#EAF5EF; --night-muted:#9DC3B2; --trace:#5BF0B4;
+  --logo-bg:#1F4A3B; --logo-moon:#C8F2DE; --theme-on:#3DDC97; --theme-on-ink:#06281C;
+  --hi-bg:#163A2C; --hi-line:#3DDC97; --next:#3DDC97; --on-next:#06281C;
+  --seg:#2C5A48; --seg-done:#3DDC97;
+  --paper:#17251F; --paper-ink:#E3EDE8;
+  --ok:#7FE0B4; --ok-bg:#173428; --warn:#F0B865; --warn-bg:#352816; --bad:#F59AA6; --bad-strong:#E8687A; --bad-bg:#3A1C24;
+  --shadow:0 8px 24px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1411; --surface:#14211C; --sunk:#101A16; --ink:#E6F0EB; --ink2:#C2D3CB; --muted:#94ADA2; --line:#24382F; --line2:#2E463B;
+  --accent:#3DDC97; --accent-soft:#163A2C; --accent-ink:#7FEBBE; --on-accent:#06281C;
+  --night:#10241D; --night2:#17332A; --night-line:#2C5A48; --on-night:#EAF5EF; --night-muted:#9DC3B2; --trace:#5BF0B4;
+  --logo-bg:#1F4A3B; --logo-moon:#C8F2DE; --theme-on:#3DDC97; --theme-on-ink:#06281C;
+  --hi-bg:#163A2C; --hi-line:#3DDC97; --next:#3DDC97; --on-next:#06281C;
+  --seg:#2C5A48; --seg-done:#3DDC97;
+  --paper:#17251F; --paper-ink:#E3EDE8;
+  --ok:#7FE0B4; --ok-bg:#173428; --warn:#F0B865; --warn-bg:#352816; --bad:#F59AA6; --bad-strong:#E8687A; --bad-bg:#3A1C24;
+  --shadow:0 8px 24px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1400px;margin:0 auto}
+/* bandeau */
+header.hero{background:var(--night);color:var(--on-night);position:relative;overflow:hidden;padding-block:22px 44px}
+.hero .trace{position:absolute;left:0;bottom:0;width:100%;height:90px;opacity:.5;pointer-events:none}
+.hero .wrap{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px}
+.brand{display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:0}
+.brand h1{margin:0;font-family:var(--f-head);font-weight:700;font-size:1.55rem;letter-spacing:-.01em;line-height:1.1}
+.brand small{display:block;font-size:.82rem;color:var(--night-muted)}
+.pchip{display:flex;align-items:center;gap:12px;padding:7px 16px 7px 7px;border-radius:999px;background:var(--night2);border:1px solid var(--night-line);min-width:0;max-width:100%}
+.pchip .av{flex:0 0 34px;height:34px;border-radius:50%;background:var(--logo-bg);display:grid;place-items:center;font-weight:700;font-size:.8rem;color:#fff}
+.pchip strong{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pchip span.sub{display:block;font-size:.75rem;color:var(--night-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:700 .9rem var(--f-body);border-radius:12px;padding:0 16px;min-height:44px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.soft{background:var(--surface);color:var(--accent);border-color:var(--line2)}
+.btn.onnight{background:transparent;color:var(--on-night);border-color:var(--night-line);font-weight:600}
+.btn.danger{border-color:var(--bad-strong);background:transparent;color:var(--bad-strong)}
+.btn.danger.armed,.btn.onnight.armed{background:var(--bad-strong);border-color:var(--bad-strong);color:#fff}
+/* scores */
+.scores{position:relative;margin-top:-26px}
+.scores-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.sc{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);min-width:0}
+.sc .k{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sc .v{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.sc .v b{font-family:var(--f-num);font-weight:700;font-size:1.8rem;line-height:1;font-variant-numeric:tabular-nums}
+.sc .v span{font-size:.8rem;color:var(--muted)}
+.sc .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--bg);color:var(--ink2)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.gauge{position:relative;display:grid;gap:3px;height:8px}
+.gauge i{border-radius:4px}
+.gauge .mk{position:absolute;top:-4px;width:4px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.ticks{display:grid;font-family:var(--f-num);font-size:.68rem;color:var(--muted)}
+.sbdots{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.sbdots span{height:28px;border-radius:8px;display:grid;place-items:center;font:700 .78rem var(--f-num);background:var(--bg);color:var(--muted)}
+.sbdots span.on{background:var(--ink);color:var(--surface)}
+.bar{height:8px;border-radius:4px;background:var(--bg);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--surface)}
+.sc.dark{background:var(--hi-bg);border-color:var(--hi-line);color:var(--on-night);box-shadow:var(--shadow)}
+.sc.dark .k,.sc.dark .v span,.sc.dark .ticks{color:var(--night-muted)}
+.sc.dark .gauge .mk{background:#fff}
+/* mise en page */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-block:22px 64px;align-items:start}
+@media (min-width:1100px){.layout{grid-template-columns:250px minmax(0,1fr)}.report{grid-column:1 / -1}}
+@media (min-width:1360px){.layout{grid-template-columns:250px minmax(0,1fr) minmax(0,440px)}.report{grid-column:auto;position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}.rail{position:sticky;top:16px}}
+.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.qbox{padding:14px;display:flex;flex-direction:column;gap:8px}
+.qfield{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--accent);border-radius:12px;padding:0 6px 0 10px;background:var(--accent-soft)}
+.qfield input{border:0;background:transparent;font:500 .85rem var(--f-num);min-height:44px;padding:0}
+.qfield input:focus-visible{outline:none}
+.qfield:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.steps{list-style:none;margin:0;padding:8px;display:none;flex-direction:column;gap:2px}
+@media (min-width:1100px){.steps{display:flex}}
+.steps a{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 10px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;color:var(--ink2)}
+.steps a:hover{background:var(--bg)}
+.steps a .n{flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;font:700 .68rem var(--f-num);background:var(--bg);color:var(--muted)}
+.steps a.done .n{background:var(--ok-bg);color:var(--ok)}
+.steps a .c{margin-left:auto;font-family:var(--f-num);font-size:.68rem;color:var(--muted)}
+.steps a .t{min-width:0;line-height:1.25;padding-block:6px}
+.banner{background:var(--warn-bg);color:var(--ink);border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:.9rem}
+form{display:flex;flex-direction:column;gap:14px;min-width:0}
+#sections{display:flex;flex-direction:column;gap:14px}
+details.sec{background:var(--surface);border:1px solid var(--line);border-radius:20px;scroll-margin-top:16px}
+details.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 20px;font-family:var(--f-head);font-weight:700;font-size:1.15rem;letter-spacing:-.005em;border-radius:20px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .num{font:700 .78rem var(--f-num);color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:4px 8px}
+details.sec>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-left:4px;transition:transform .15s}
+details.sec[open]>summary::after{transform:rotate(-135deg)}
+.cnt{margin-left:auto;font:500 .75rem var(--f-num);color:var(--muted)}
+.sec .body{padding:0 20px 22px;display:flex;flex-wrap:wrap;gap:16px 14px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.w-s{flex:1 1 140px;max-width:210px}.w-m{flex:1 1 220px}.w-l{flex:1 1 100%}
+.lab{font-size:.8rem;color:var(--ink2);font-weight:600}
+.lab em{font-style:normal;font-weight:500;color:var(--muted)}
+.hint{font-size:.78rem;color:var(--muted)}
+input,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line2);border-radius:12px;padding:10px 12px;width:100%;min-width:0;min-height:44px}
+input[inputmode="decimal"]{font:700 1rem var(--f-num);font-variant-numeric:tabular-nums}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea{min-height:72px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:600 .86rem var(--f-body);border:1px solid var(--line2);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;min-height:38px;cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.grp{width:100%;display:flex;flex-direction:column;gap:8px}
+.grp h4{margin:6px 0 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.calc{font:500 .82rem var(--f-num);background:var(--accent-soft);color:var(--accent-ink);border-radius:12px;padding:10px 12px;width:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.calc.read{background:var(--bad-bg);color:var(--bad);font-family:var(--f-body)}
+.calc.read strong{margin-right:4px}
+.calc.read .tag{background:var(--surface);color:var(--bad);font-size:.8rem}
+table.eps{width:100%;border-collapse:collapse}
+.eps td{padding:9px 4px;border-top:1px solid var(--line);vertical-align:middle}
+.eps td:first-child{width:52%;padding-right:12px;font-weight:600;color:var(--ink2)}
+.eps .chips{flex-wrap:nowrap}
+.eps .chip{min-width:42px;text-align:center;font-family:var(--f-num);border-radius:10px}
+.eps-leg{font-size:.8rem;color:var(--muted);width:100%;background:var(--bg);border-radius:12px;padding:10px 12px}
+@media (max-width:560px){.eps tr{display:flex;flex-direction:column}.eps td:first-child{width:auto;border-top:1px solid var(--line);padding-bottom:2px}.eps td+td{border-top:0}}
+.sbrow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);width:100%}
+.sbrow .L{font:700 1.05rem var(--f-num);color:var(--accent);background:var(--accent-soft);border-radius:8px;height:32px;display:grid;place-items:center}
+.sbrow .auto{font:500 .8rem var(--f-num);padding:4px 10px;border-radius:8px;background:var(--bg)}
+.sbrow .auto.y{background:var(--ink);color:var(--surface)}
+.sugg{width:100%;background:var(--accent-soft);color:var(--accent-ink);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.sugg p{margin:0}.sugg ul{margin:0;padding-left:18px}
+.nox{width:100%;border:1.5px dashed var(--line2);border-radius:16px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:var(--sunk)}
+.nox.over{border-color:var(--accent);background:var(--accent-soft)}
+.nox input[type=file]{position:absolute;width:1px;height:1px;opacity:0;min-height:0;padding:0}
+.nox .ic{flex:0 0 46px;height:46px;border-radius:14px;background:var(--night);display:grid;place-items:center}
+.nox .hint{flex:1 1 240px}
+/* courrier */
+.report{background:transparent;min-width:0;display:flex;flex-direction:column;gap:10px}
+.rhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rhead h2{margin:0 auto 0 0;font-family:var(--f-head);font-size:1.25rem}
+.live{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--ok-bg);color:var(--ok)}
+.letter{background:var(--paper);color:var(--paper-ink);border:1px solid var(--line);border-radius:6px 20px 20px 20px;box-shadow:var(--shadow);font-family:var(--f-letter);font-size:.98rem;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;padding:28px 28px 32px;margin:0;overflow:auto;flex:1;min-height:200px}
+.status{font-size:.82rem;color:var(--ok);min-height:1.1em}
+.tools{display:flex;flex-direction:column;gap:8px}
+.tools summary{cursor:pointer;font-size:.85rem;color:var(--muted);min-height:32px}
+@media (max-width:640px){.scores-in{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}.sc{flex:0 0 82%;scroll-snap-align:start}}
+.theme{display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--night2);border:1px solid var(--night-line)}
+.theme button{width:40px;height:40px;border:0;border-radius:9px;background:transparent;color:var(--night-muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.theme button:hover{color:var(--on-night)}
+.theme button[aria-pressed="true"]{background:var(--theme-on);color:var(--theme-on-ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="hero gut">
+  <svg class="trace" aria-hidden="true" viewBox="0 0 1440 120" preserveAspectRatio="none"><polyline fill="none" style="stroke:var(--trace)" stroke-width="1.5" vector-effect="non-scaling-stroke" points="0,70 60,68 120,72 180,66 240,70 300,64 330,96 350,58 380,70 440,68 500,71 560,66 600,69 630,100 650,60 690,72 760,68 820,70 880,66 940,69 980,98 1000,62 1030,70 1100,67 1160,71 1220,66 1280,70 1320,94 1340,60 1370,70 1440,68"></polyline><polyline fill="none" style="stroke:var(--night-line)" stroke-width="1" vector-effect="non-scaling-stroke" points="0,90 1440,90"></polyline></svg>
+  <div class="wrap">
+    <div class="brand">
+      <svg aria-hidden="true" width="44" height="44" viewBox="0 0 44 44" style="flex:0 0 44px"><rect width="44" height="44" rx="12" style="fill:var(--logo-bg)"></rect><path d="M27 11a11 11 0 1 0 6 19 9 9 0 0 1-6-19z" fill="none" style="stroke:var(--logo-moon)" stroke-width="2"></path><path d="M10 30h6l2-4 3 8 2-6h11" fill="none" style="stroke:var(--trace)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <div><h1>Dépistage SAOS</h1><small>OverMed · consultation, scores et compte rendu</small></div>
+    </div>
+    <div class="pchip" id="pchip"><span class="av" id="pAv">—</span><span style="min-width:0"><strong id="pName">Nouveau patient</strong><span class="sub" id="pSub">Saisissez l’identité ou scannez le code patient</span></span></div>
+    <div class="acts">
+      <div class="theme" role="group" aria-label="Apparence"><button type="button" data-theme-set="light" aria-pressed="false" aria-label="Mode clair" title="Mode clair"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M9 1.8v1.6M9 14.6v1.6M1.8 9h1.6M14.6 9h1.6M3.9 3.9l1.1 1.1M13 13l1.1 1.1M3.9 14.1L5 13M13 5l1.1-1.1"></path></svg></button><button type="button" data-theme-set="dark" aria-pressed="false" aria-label="Mode sombre" title="Mode sombre"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M14.5 11.2A6 6 0 0 1 6.8 3.5a6 6 0 1 0 7.7 7.7z"></path></svg></button><button type="button" data-theme-set="auto" aria-pressed="false" aria-label="Automatique, comme l’appareil" title="Automatique, comme l’appareil"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2" y="3" width="14" height="9.5" rx="1.5"></rect><path d="M6.5 15.5h5M9 12.5v3"></path></svg></button></div>
+      <button type="button" class="btn onnight" id="reset">Nouveau patient</button>
+      <button type="button" class="btn" id="copyTxt"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2"></path></svg>Copier le courrier</button>
+    </div>
+  </div>
+</header>
+<section class="scores gut" aria-label="Scores"><div class="wrap scores-in" id="strip"></div></section>
+
+<div class="layout gut wrap">
+  <nav class="rail" aria-label="Étapes de la consultation">
+    <div class="card qbox"><label for="qcode" class="lab" style="text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--muted)">Code patient</label>
+      <div class="qfield"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent);flex:0 0 20px"><path d="M3 7V4a1 1 0 0 1 1-1h3M13 3h3a1 1 0 0 1 1 1v3M17 13v3a1 1 0 0 1-1 1h-3M7 17H4a1 1 0 0 1-1-1v-3M6 10h8"></path></svg><input id="qcode" placeholder="Scannez le QR code"></div><button type="button" class="btn soft" id="qimport">Importer les réponses</button>
+      <span class="hint" id="qmsg">Bipez le QR code du patient (le curseur peut être n’importe où) ou tapez son code de secours.</span>
+    </div>
+    <div class="card qbox" id="dossierBox"><span class="lab" style="text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--muted)">Dossier en cours</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn" id="dSave" style="flex:1 1 100px" hidden><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M3 13h10"></path></svg>Enregistrer</button>
+        <label class="btn soft" for="dFile" style="flex:1 1 100px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5V3.5A1.5 1.5 0 0 1 3.5 2h3l1.5 2h4.5A1.5 1.5 0 0 1 14 5.5V12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12z"></path></svg>Ouvrir</label>
+        <input type="file" id="dFile" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;min-height:0;padding:0">
+      </div>
+      <span class="hint" id="dMsg">Tout est sauvegardé automatiquement sur ce poste. Enregistrez le dossier pour le reprendre sur un autre poste (dossier partagé du cabinet, par exemple) ; vous pouvez aussi glisser le fichier sur la page.</span>
+      <div id="dConfirm" class="banner" style="padding:10px 12px" hidden><span style="flex:1 1 140px">Remplacer le dossier affiché par celui du fichier ?</span><button type="button" class="btn danger" id="dYes" style="min-height:36px">Remplacer</button><button type="button" class="btn soft" id="dNo" style="min-height:36px">Annuler</button></div>
+    </div>
+    <ol class="card steps" id="stepNav"></ol>
+  </nav>
+  <form id="form" autocomplete="off" novalidate>
+    <div class="banner" id="draftBanner" style="background:var(--accent-soft);color:var(--accent-ink)" hidden><span id="draftTxt" style="flex:1 1 260px"></span><button type="button" class="btn" id="draftYes">Reprendre</button><button type="button" class="btn soft" id="draftNo">Ignorer</button></div>
+    <div class="banner" id="exBanner" hidden><span>Patient fictif chargé pour montrer le rendu. Videz le formulaire avant la première consultation.</span><button type="button" class="btn danger" id="exClear">Vider l’exemple</button></div>
+    <div id="sections"></div>
+  </form>
+  <aside class="report" id="cr">
+    <div class="rhead"><h2 id="crTitle">Compte rendu</h2><span class="live">Mis à jour en direct</span>
+      <button type="button" class="btn soft" id="copyTxt2">Copier</button>
+    </div>
+    <pre class="letter" id="letter"></pre>
+    <div class="tools">
+      <div class="status" id="status" aria-live="polite"></div>
+      <details><summary>Échange de données (JSON pour OverMed)</summary>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <button type="button" class="btn ghost" id="copyJson">Copier les données JSON</button>
+          <textarea id="importBox" placeholder="Collez ici un JSON exporté pour recharger un patient"></textarea>
+          <button type="button" class="btn ghost" id="importBtn">Charger ce JSON</button>
+        </div>
+      </details>
+    </div>
+  </aside>
+</div>
+
+<script>
+const YN=['Oui','Non'];
+const isM=d=>d.sexe!=='Femme', isF=d=>d.sexe!=='Homme';
+const EPS=['Assis en train de lire','En regardant la télévision','Assis, inactif, dans un lieu public (cinéma, théâtre, réunion)','Passager d’une voiture roulant sans arrêt pendant une heure','Allongé l’après-midi quand les circonstances le permettent','Assis en parlant avec quelqu’un','Assis au calme après un déjeuner sans alcool','Dans une voiture immobilisée quelques minutes dans un embouteillage'];
+const PROPS=['Traitement par pression positive continue (PPC)','Orthèse d’avancée mandibulaire, après bilan dentaire','Traitement positionnel','Mesures hygiéno-diététiques et perte de poids','Éviction de l’alcool le soir et des sédatifs','Avis ORL','Avis pneumologue / spécialiste du sommeil','Polysomnographie','Avis cardiologique','Information sur la conduite automobile','Réévaluation clinique après mise en route du traitement'];
+
+const S=[
+ {id:'praticien',t:'Réglages praticien',closed:true,f:[
+  {k:'doc_nom',l:'Nom et titre',type:'text',ph:'Dr …',pr:1},
+  {k:'doc_titre',l:'Spécialité',type:'text',ph:'Médecin généraliste',pr:1},
+  {k:'doc_cab',l:'Cabinet',type:'text',pr:1},
+  {k:'doc_ville',l:'Ville (date du courrier)',type:'text',pr:1},
+  {k:'doc_contact',l:'Coordonnées (téléphone, RPPS…)',type:'text',w:'l',pr:1},
+  {type:'note',l:'Ces réglages restent dans ce navigateur. Le brouillon patient est conservé dans ce navigateur.'}]},
+ {id:'pat',t:'Patient et adressage',f:[
+  {k:'nom',l:'Nom',type:'text'},{k:'prenom',l:'Prénom',type:'text'},
+  {k:'ddn',l:'Date de naissance',type:'date',w:'s'},{k:'date_cs',l:'Date de consultation',type:'date',w:'s'},
+  {k:'sexe',l:'Sexe',type:'radio',o:['Homme','Femme'],w:'m'},
+  {k:'prof',l:'Profession',type:'text'},
+  {k:'conduite',l:'Conduite',type:'radio',o:['Ne conduit pas','Permis B','Conducteur professionnel / poste de sécurité'],w:'l'},
+  {k:'adr_nom',l:'Médecin adresseur',type:'text',ph:'Dr …'},{k:'adr_ville',l:'Cabinet / ville de l’adresseur',type:'text'},
+  {k:'adr_formule',l:'Formule d’appel',type:'radio',o:['Cher confrère','Chère consœur','Cher collègue','Chère collègue'],w:'l'},
+  {k:'motif',l:'Motif d’adressage',type:'multi',o:['Ronflement','Pauses respiratoires constatées','Somnolence diurne','Fatigue','HTA résistante','Fibrillation atriale','Insuffisance cardiaque','Bilan pré-opératoire / bariatrique','Somnolence ou accident au volant','Surpoids / obésité']},
+  {k:'motif_txt',l:'Précisions sur la demande',type:'area'}]},
+ {id:'mes',t:'Mesures',f:[
+  {k:'poids',l:'Poids',u:'kg',type:'num',w:'s'},{k:'taille',l:'Taille',u:'cm',type:'num',w:'s'},
+  {k:'cou',l:'Tour de cou',u:'cm',type:'num',w:'s',hint:'Au niveau de la pomme d’Adam'},{k:'tt',l:'Tour de taille',u:'cm',type:'num',w:'s'},
+  {k:'pas',l:'PA systolique',u:'mmHg',type:'num',w:'s'},{k:'pad',l:'PA diastolique',u:'mmHg',type:'num',w:'s'},{k:'fc',l:'FC',u:'/min',type:'num',w:'s'},
+  {type:'calc',id:'calcMes'}]},
+ {id:'som',t:'Habitudes de sommeil',f:[
+  {k:'coucher',l:'Heure de coucher',type:'time',w:'s'},{k:'lever',l:'Heure de lever',type:'time',w:'s'},
+  {k:'latence',l:'Latence d’endormissement',u:'min',type:'num',w:'s'},{k:'reveils',l:'Réveils nocturnes',u:'n/nuit',type:'num',w:'s'},
+  {k:'sieste',l:'Sieste',type:'radio',o:['Jamais','Occasionnelle','Quotidienne'],w:'m'},
+  {k:'position',l:'Position d’endormissement',type:'radio',o:['Dos','Côté','Ventre','Variable'],w:'m'},
+  {k:'temoin',l:'Témoin du sommeil',type:'radio',o:['Conjoint présent','Dort seul'],w:'m'},
+  {k:'som_x',l:'Contexte',type:'multi',o:['Travail posté ou de nuit','Dette de sommeil (moins de 6 h/nuit)','Décalage week-end de plus de 2 h','Écrans au lit']},
+  {type:'calc',id:'calcSom'}]},
+ {id:'noc',t:'Symptômes nocturnes',f:[
+  {k:'ronfl',l:'Ronflement',type:'radio',o:['Absent','Occasionnel','Fréquent','Quotidien'],w:'l'},
+  {k:'ronfl_fort',l:'Audible porte fermée',type:'radio',o:YN,w:'m'},
+  {k:'pauses',l:'Pauses respiratoires observées',type:'radio',o:['Non','Ne sait pas','Oui'],w:'m'},
+  {k:'nycturie',l:'Nycturie',u:'mictions/nuit',type:'num',w:'s'},
+  {k:'noc',l:'Autres signes',type:'multi',o:['Éveils avec suffocation / étouffement','Sommeil agité','Sueurs nocturnes','Bouche sèche au réveil','Reflux nocturne','Bruxisme','Impatiences des membres inférieurs','Comportements anormaux pendant le sommeil','Réveils précoces','Difficultés d’endormissement']}]},
+ {id:'diu',t:'Retentissement diurne',f:[
+  {k:'diu',l:'Symptômes',type:'multi',o:['Sommeil non réparateur','Fatigue','Céphalées matinales','Troubles de la concentration','Troubles de la mémoire','Irritabilité','Humeur dépressive','Baisse de la libido','Dysfonction érectile','Retentissement professionnel','Gêne du conjoint / chambre séparée'],hide:{'Dysfonction érectile':isM}},
+  {k:'vol',l:'Somnolence au volant',type:'radio',o:['Jamais','Lutte contre le sommeil','Endormissement au volant'],w:'l'},
+  {k:'accident',l:'Accident lié à la somnolence',type:'radio',o:['Non','Presque-accident','Accident'],w:'m'},
+  {k:'accident_txt',l:'Circonstances, date',type:'text'},
+  {k:'eva',l:'Fatigue (EVA)',u:'0–10',type:'num',w:'s'}]},
+ {id:'eps',t:'Échelle d’Epworth',f:[{k:'eps',type:'eps'}]},
+ {id:'sb',t:'STOP-Bang',f:[{k:'sb',type:'sb'}]},
+ {id:'atcd',t:'Antécédents',f:[
+  {k:'a_cv',g:'Cardiovasculaires',type:'multi',o:['HTA','HTA résistante (3 traitements ou plus)','Fibrillation atriale / troubles du rythme','Insuffisance cardiaque','Coronaropathie / infarctus','AVC / AIT','Hypertension pulmonaire']},
+  {k:'a_met',g:'Métaboliques et endocriniens',type:'multi',o:['Obésité','Diabète de type 2','Dyslipidémie','Stéatose hépatique (MASLD)','Hypothyroïdie','Acromégalie','Syndrome de Cushing','SOPK','Goutte'],hide:{'SOPK':isF}},
+  {k:'a_resp',g:'Respiratoires',type:'multi',o:['BPCO','Asthme','Syndrome obésité-hypoventilation','Rhinite chronique / allergique','Polypose nasale']},
+  {k:'a_orl',g:'ORL et maxillo-faciaux',type:'multi',o:['Amygdalectomie','Adénoïdectomie','Déviation septale / chirurgie nasale','Chirurgie vélopalatine','Rétrognathie / micrognathie','Orthodontie avec extractions','Chirurgie bariatrique']},
+  {k:'a_neuro',g:'Neurologiques et psychiatriques',type:'multi',o:['Migraine','Céphalées chroniques','Épilepsie','Maladie de Parkinson','Troubles cognitifs','Dépression','Trouble anxieux','TDAH','Insomnie chronique']},
+  {k:'a_autre',g:'Autres',type:'multi',o:['Insuffisance rénale chronique','RGO','Glaucome','Hypertrophie bénigne de la prostate','Grossesse en cours','Ménopause'],hide:{'Hypertrophie bénigne de la prostate':isM,'Grossesse en cours':isF,'Ménopause':isF}},
+  {k:'a_som',g:'Sommeil',type:'multi',o:['SAOS déjà connu','Polygraphie / polysomnographie antérieure','PPC antérieure','Orthèse antérieure']},
+  {k:'a_fam',g:'Familiaux',type:'multi',o:['SAOS dans la famille','Mort subite dans la famille']},
+  {k:'a_txt',l:'Autres antécédents',type:'area'}]},
+ {id:'ttt',t:'Traitements et toxiques',f:[
+  {k:'ttt_sed',l:'Traitements à effet sédatif ou dépresseur respiratoire',type:'multi',o:['Benzodiazépines','Hypnotiques (zolpidem, zopiclone)','Opioïdes','Myorelaxants','Antidépresseurs sédatifs','Antipsychotiques','Antihistaminiques sédatifs','Gabapentine / prégabaline']},
+  {k:'ttt_txt',l:'Traitement en cours',type:'area'},
+  {k:'alcool',l:'Alcool',u:'verres/sem',type:'num',w:'s'},
+  {k:'alcool_soir',l:'Alcool le soir',type:'radio',o:YN,w:'s'},
+  {k:'tabac',l:'Tabac',type:'radio',o:['Jamais','Sevré','Actif'],w:'m'},
+  {k:'pa',l:'Paquets-années',type:'num',w:'s'},
+  {k:'cannabis',l:'Cannabis',type:'radio',o:YN,w:'s'},
+  {k:'cafe',l:'Café / boissons caféinées',u:'/jour',type:'num',w:'s'}]},
+ {id:'exa',t:'Examen ORL et morphologique',f:[
+  {k:'mallampati',l:'Mallampati modifié',type:'radio',o:['I','II','III','IV'],w:'m'},
+  {k:'friedman',l:'Amygdales (Friedman)',type:'radio',o:['0','1','2','3','4'],w:'m'},
+  {k:'exa',l:'Constatations',type:'multi',o:['Rétrognathie','Macroglossie','Voile long / luette épaisse','Palais ogival','Obstruction nasale','Hypertrophie des cornets','Édentation / prothèse amovible','Cou court et large']},
+  {k:'exa_txt',l:'Autres éléments d’examen',type:'area'}]},
+ {id:'pv',t:'Polygraphie ventilatoire nocturne',f:[
+  {type:'nox'},
+  {k:'pv_date',l:'Date de l’enregistrement',type:'date',w:'s'},{k:'pv_app',l:'Appareil',type:'text'},
+  {k:'pv_duree',l:'Durée analysable',u:'h',type:'num',w:'s'},
+  {k:'pv_qual',l:'Qualité du tracé',type:'radio',o:['Bonne','Acceptable','Insuffisante'],w:'m'},
+  {k:'iah',l:'IAH',u:'/h',type:'num',w:'s'},{k:'ia',l:'Index d’apnées',u:'/h',type:'num',w:'s'},{k:'ih',l:'Index d’hypopnées',u:'/h',type:'num',w:'s'},
+  {k:'iao',l:'Apnées obstructives',u:'/h',type:'num',w:'s'},{k:'iac',l:'Apnées centrales',u:'/h',type:'num',w:'s'},{k:'iam',l:'Apnées mixtes',u:'/h',type:'num',w:'s'},
+  {k:'iah_dos',l:'IAH décubitus dorsal',u:'/h',type:'num',w:'s'},{k:'iah_nd',l:'IAH hors dorsal',u:'/h',type:'num',w:'s'},{k:'pct_dos',l:'Temps sur le dos',u:'%',type:'num',w:'s'},
+  {k:'odi',l:'IDO (index de désaturation en oxygène)',u:'/h',type:'num',w:'m'},{k:'spo2_moy',l:'SpO₂ moyenne',u:'%',type:'num',w:'s'},{k:'spo2_min',l:'SpO₂ nadir',u:'%',type:'num',w:'s'},{k:'t90',l:'Temps SpO₂ < 90 %',u:'%',type:'num',w:'s'},{k:'hb',l:'Charge hypoxique',u:'%·min/h',type:'num',w:'s'},
+  {k:'fc_moy',l:'FC moyenne',u:'/min',type:'num',w:'s'},{k:'ronfl_pct',l:'Ronflement',u:'% du temps',type:'num',w:'s'},
+  {k:'csr',l:'Respiration de Cheyne-Stokes',type:'radio',o:YN,w:'m'},
+  {k:'pv_txt',l:'Commentaire sur le tracé',type:'area'},
+  {type:'calc',id:'calcPv'}]},
+ {id:'ccl',t:'Conclusion et propositions',f:[
+  {type:'sugg',id:'sugg'},
+  {k:'prop',l:'Propositions retenues',type:'multi',o:PROPS},
+  {k:'ccl_txt',l:'Commentaire libre (ajouté à la conclusion)',type:'area'}]}
+];
+
+let D={}, PR={};
+const PRKEY='overmed_saos_praticien';
+const ALLF=S.flatMap(s=>s.f.map(f=>({...f,sec:s.id})));
+const num=k=>{const v=D[k];if(v==null||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n};
+const arr=k=>Array.isArray(D[k])?D[k]:[];
+const filled=v=>Array.isArray(v)?v.some(x=>x!=null&&x!==''):(v!=null&&v!=='');
+const fx=(n,d=1)=>n==null?'':(Math.round(n*10**d)/10**d).toString().replace('.',',');
+const fr=s=>{if(!s)return'';const[y,m,d]=s.split('-');return `${d}/${m}/${y}`};
+const lc=s=>{if(!s)return s;const w=s.split(/[\s/(]/)[0].slice(1);return w&&w===w.toLowerCase()?s[0].toLowerCase()+s.slice(1):s};
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const todayISO=()=>{const t=new Date();return new Date(t-t.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const visOpts=f=>f.o.filter(o=>!(f.hide&&f.hide[o]&&!f.hide[o](D)));
+
+/* ---------- rendu du formulaire ---------- */
+function fieldHTML(f){
+  const id=f.k?`f_${f.k}`:'';
+  const lab=f.l?`<span class="lab">${esc(f.l)}${f.u?` <em>(${esc(f.u)})</em>`:''}</span>`:'';
+  const hint=f.hint?`<span class="hint">${esc(f.hint)}</span>`:'';
+  const w=`w-${f.w||'m'}`;
+  switch(f.type){
+    case 'text': case 'date': case 'time':
+      return `<label class="fld ${w}">${lab}<input id="${id}" data-k="${f.k}" type="${f.type}" placeholder="${esc(f.ph||'')}">${hint}</label>`;
+    case 'num':
+      return `<label class="fld ${w}">${lab}<input id="${id}" data-k="${f.k}" type="text" inputmode="decimal">${hint}</label>`;
+    case 'area':
+      return `<label class="fld w-l">${lab}<textarea id="${id}" data-k="${f.k}"></textarea></label>`;
+    case 'radio': case 'multi':{
+      const head=f.g?`<h4>${esc(f.g)}</h4>`:lab;
+      return `<div class="${f.g?'grp':'fld '+(f.type==='multi'?'w-l':w)}" role="group">${head}<div class="chips">${f.o.map(o=>`<button type="button" class="chip" data-k="${f.k}" data-v="${esc(o)}" data-mode="${f.type}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>${hint}</div>`;}
+    case 'eps':
+      return `<span class="eps-leg">0 : ne s’endormirait jamais · 1 : faible chance · 2 : chance moyenne · 3 : forte chance de s’endormir</span><table class="eps"><tbody>${EPS.map((q,i)=>`<tr><td>${esc(q)}</td><td><div class="chips">${[0,1,2,3].map(n=>`<button type="button" class="chip" data-eps="${i}" data-v="${n}" aria-pressed="false">${n}</button>`).join('')}</div></td></tr>`).join('')}</tbody></table>`;
+    case 'sb':{
+      const q=[['S','sb_s','Ronflez-vous fort (audible porte fermée, ou le conjoint vous réveille) ?'],['T','sb_t','Vous sentez-vous souvent fatigué ou somnolent dans la journée ?'],['O','sb_o','Quelqu’un a-t-il observé des arrêts respiratoires pendant votre sommeil ?'],['P','sb_p','Êtes-vous traité pour une hypertension artérielle ?']];
+      return q.map(([L,k,t])=>`<div class="sbrow"><span class="L">${L}</span><span>${t}<br><span class="hint" id="h_${k}"></span></span><div class="chips">${YN.map(o=>`<button type="button" class="chip" data-k="${k}" data-v="${o}" data-mode="radio" aria-pressed="false">${o}</button>`).join('')}</div></div>`).join('')
+       +[['B','IMC > 35 kg/m²'],['A','Âge > 50 ans'],['N','Tour de cou ≥ 43 cm (homme) / ≥ 41 cm (femme)'],['G','Sexe masculin']].map(([L,t])=>`<div class="sbrow"><span class="L">${L}</span><span>${t}<br><span class="hint">Calculé à partir des mesures</span></span><span class="auto" id="sbauto_${L}">—</span></div>`).join('')
+       +`<div class="calc" id="calcSb"></div>`;}
+    case 'calc': return `<div class="calc" id="${f.id}"></div>`;
+    case 'sugg': return `<div class="sugg" id="${f.id}"></div>`;
+    case 'nox': return `<div class="nox" id="noxDrop"><span class="ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="stroke:var(--logo-moon)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3 3 3-3"></path></svg></span><label class="btn" for="noxFile">Importer le PDF Noxturnal</label><input type="file" id="noxFile" accept="application/pdf,.pdf"><span class="hint" id="noxMsg">ou glissez le rapport ici. Le PDF est lu sur cet ordinateur et n’est envoyé nulle part.</span></div>`;
+    case 'note': return `<p class="hint w-l" style="margin:0">${esc(f.l)}</p>`;
+  }
+  return '';
+}
+function render(){
+  let n=0;document.getElementById('sections').innerHTML=S.map(s=>`<details class="sec" id="sec_${s.id}" ${s.closed?'':'open'}><summary>${s.id==='praticien'?'':`<span class="num">${String(++n).padStart(2,'0')}</span>`}${esc(s.t)}<span class="cnt" id="cnt_${s.id}"></span></summary><div class="body">${s.f.map(fieldHTML).join('')}</div></details>`).join('');
+}
+function syncInputs(){
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const k=el.dataset.k, src=k.startsWith('doc_')?PR:D;
+    if(el.classList.contains('chip')){
+      const v=src[k]; el.setAttribute('aria-pressed',String(el.dataset.mode==='multi'?Array.isArray(v)&&v.includes(el.dataset.v):v===el.dataset.v));
+    } else el.value=src[k]??'';
+  });
+  document.querySelectorAll('[data-eps]').forEach(el=>{const a=D.eps||[];el.setAttribute('aria-pressed',String(a[+el.dataset.eps]===+el.dataset.v))});
+}
+
+/* ---------- calculs ---------- */
+function age(){if(!D.ddn)return null;const b=new Date(D.ddn),r=D.date_cs?new Date(D.date_cs):new Date();let a=r.getFullYear()-b.getFullYear();const m=r.getMonth()-b.getMonth();if(m<0||(m===0&&r.getDate()<b.getDate()))a--;return a>=0&&a<130?a:null}
+function imc(){const p=num('poids'),t=num('taille');return p&&t?p/((t/100)**2):null}
+function imcCls(i){return i<18.5?'maigreur':i<25?'corpulence normale':i<30?'surpoids':i<35?'obésité grade I':i<40?'obésité grade II':'obésité grade III'}
+function epw(){const a=D.eps||[];let s=0,n=0;for(let i=0;i<8;i++)if(a[i]!=null){s+=a[i];n++}return n?{s,n,cls:s<=10?'normale':s<=12?'somnolence légère':s<=15?'somnolence modérée':'somnolence sévère'}:null}
+function stopbang(){
+  const male=D.sexe==='Homme',fem=D.sexe==='Femme',I=imc(),A=age(),c=num('cou');
+  const it={S:D.sb_s==='Oui',T:D.sb_t==='Oui',O:D.sb_o==='Oui',P:D.sb_p==='Oui',
+    B:I!=null&&I>35,A:A!=null&&A>50,N:c!=null&&(male?c>=43:fem?c>=41:false),G:male};
+  const answered=['sb_s','sb_t','sb_o','sb_p'].filter(k=>D[k]).length;
+  if(!answered&&I==null&&A==null&&c==null&&!D.sexe)return null;
+  const s=Object.values(it).filter(Boolean).length, stop=it.S+it.T+it.O+it.P;
+  let risk=s<=2?'faible':s<=4?'intermédiaire':'élevé';
+  if(risk==='intermédiaire'&&stop>=2&&(it.G||it.B||it.N))risk='élevé';
+  const missing=[];if(answered<4)missing.push(`${4-answered} question(s) STOP`);if(I==null)missing.push('IMC');if(A==null)missing.push('âge');if(c==null)missing.push('tour de cou');if(!D.sexe)missing.push('sexe');
+  return{s,it,risk,missing};
+}
+function nosas(){
+  const I=imc(),A=age(),c=num('cou');
+  const snore=(D.ronfl&&D.ronfl!=='Absent')||D.sb_s==='Oui';
+  if(I==null&&A==null&&c==null&&!D.sexe&&!D.ronfl)return null;
+  const s=(c!=null&&c>40?4:0)+(I!=null?(I>=30?5:I>=25?3:0):0)+(snore?2:0)+(A!=null&&A>55?4:0)+(D.sexe==='Homme'?2:0);
+  return{s,high:s>=8,full:c!=null&&I!=null&&A!=null&&!!D.sexe&&!!(D.ronfl||D.sb_s)};
+}
+function sev(){const i=num('iah');if(i==null)return null;return i<5?{t:'absence de SAOS significatif',c:'ok',k:0}:i<15?{t:'SAOS léger',c:'warn',k:1}:i<30?{t:'SAOS modéré',c:'bad',k:2}:{t:'SAOS sévère',c:'bad',k:3}}
+function pvFlags(){
+  const iah=num('iah'),ia=num('ia'),iac=num('iac'),iao=num('iao'),iam=num('iam'),dos=num('iah_dos'),nd=num('iah_nd'),t90=num('t90'),nad=num('spo2_min');
+  const totA=ia??((iao||0)+(iac||0)+(iam||0)||null);
+  return{
+    central:iac!=null&&totA&&iac/totA>0.5&&iac>=5,
+    positional:dos!=null&&nd!=null&&dos>=2*Math.max(nd,0.1)&&dos>=5,
+    posExclusive:dos!=null&&nd!=null&&dos>=2*Math.max(nd,0.1)&&nd<5,
+    hypox:(t90!=null&&t90>=10)||(nad!=null&&nad<85),
+    csr:D.csr==='Oui',iah,dos,nd,t90,nad
+  };
+}
+const CV=['HTA résistante (3 traitements ou plus)','Fibrillation atriale / troubles du rythme','Insuffisance cardiaque','Coronaropathie / infarctus','AVC / AIT'];
+function suggestions(){
+  const out=[],sv=sev(),p=pvFlags(),E=epw(),sb=stopbang(),I=imc();
+  const cv=arr('a_cv').some(x=>CV.includes(x));
+  const sleepy=(E&&E.s>10)||D.vol==='Lutte contre le sommeil'||D.vol==='Endormissement au volant';
+  if(!sv){
+    if(sb&&sb.risk==='élevé')out.push(['Probabilité clinique élevée : la polygraphie est justifiée.',null]);
+    if(arr('a_neuro').includes('Insomnie chronique')||arr('noc').includes('Difficultés d’endormissement'))out.push(['Insomnie associée : penser au COMISA (insomnie + apnées).',null]);
+    return out;
+  }
+  if(sv.k===0){
+    if((sb&&sb.risk==='élevé')||sleepy)out.push(['IAH normal malgré une forte suspicion clinique : la polygraphie peut sous-estimer l’IAH.',PROPS[7]]);
+    if(sleepy)out.push(['Somnolence inexpliquée : avis spécialisé du sommeil.',PROPS[6]]);
+    if(I!=null&&I>=25)out.push(['Surcharge pondérale.',PROPS[3]]);
+    return out;
+  }
+  if(p.central||p.csr){out.push(['Composante centrale ou Cheyne-Stokes : bilan cardiaque et avis spécialisé avant tout appareillage.',PROPS[8]]);out.push(['',PROPS[6]]);}
+  if(sv.k===3||(sv.k===2&&(cv||sleepy)))out.push(['SAOS sévère, ou modéré avec somnolence ou comorbidité cardiovasculaire : PPC en première intention.',PROPS[0]]);
+  else if(sv.k>=1){out.push(['SAOS léger à modéré : l’orthèse d’avancée mandibulaire est une option de première intention.',PROPS[1]]);}
+  if(p.positional)out.push([p.posExclusive?'SAOS positionnel (IAH hors dorsal < 5/h) : le traitement positionnel peut suffire.':'Composante positionnelle nette.',PROPS[2]]);
+  if(I!=null&&I>=25)out.push(['IMC ≥ 25 kg/m².',PROPS[3]]);
+  if(D.alcool_soir==='Oui'||arr('ttt_sed').length)out.push(['Alcool le soir ou traitement sédatif.',PROPS[4]]);
+  if(+D.friedman>=3||arr('exa').includes('Obstruction nasale')||arr('exa').includes('Hypertrophie des cornets'))out.push(['Obstacle ORL possiblement accessible à un traitement.',PROPS[5]]);
+  if(sv.k>=1&&(sleepy||D.conduite==='Conducteur professionnel / poste de sécurité'||D.accident&&D.accident!=='Non'))out.push(['Somnolence ou conduite à risque : information sur l’aptitude à la conduite.',PROPS[9]]);
+  if(sv.k>=1)out.push(['',PROPS[10]]);
+  return out;
+}
+
+/* ---------- courrier ---------- */
+function buildReport(){
+  const male=D.sexe==='Homme',fem=D.sexe==='Femme';
+  const civ=male?'M.':fem?'Mme':'';
+  const name=(D.nom||D.prenom)?[civ,(D.nom||'').toUpperCase(),D.prenom].filter(Boolean).join(' '):'';
+  const pat=name||(fem?'votre patiente':'votre patient');
+  const a=age(),I=imc(),E=epw(),sb=stopbang(),ns=nosas(),sv=sev(),p=pvFlags();
+  const L=[],sec=(t,lines)=>{lines=lines.filter(Boolean);if(lines.length){L.push('',t.toUpperCase(),...lines)}};
+  const list=xs=>xs.map((x,i)=>i?lc(x):x).join(', ');
+  const llist=xs=>xs.map(lc).join(', ');
+  const head=[PR.doc_nom,PR.doc_titre,PR.doc_cab,PR.doc_contact].filter(Boolean);
+  if(head.length)L.push(...head,'');
+  if(D.adr_nom)L.push(`À l’attention de ${D.adr_nom}${D.adr_ville?', '+D.adr_ville:''}`);
+  L.push(`${PR.doc_ville?PR.doc_ville+', ':''}le ${fr(todayISO())}`,'');
+  const ne=fem?'née':'né';
+  L.push(`Objet : ${sv?'résultats de polygraphie ventilatoire nocturne':'consultation de dépistage du syndrome d’apnées du sommeil'}${name?' — '+name:''}${D.ddn?`, ${ne} le ${fr(D.ddn)}`:''}`,'');
+  L.push(`${D.adr_formule||'Cher confrère'},`,'');
+  const mot=arr('motif');
+  L.push(`Je vous remercie de m’avoir adressé${fem?'e':''} ${pat}${a!=null?`, ${a} ans`:''}${D.prof?`, ${lc(D.prof)}`:''}, pour un dépistage du syndrome d’apnées du sommeil${mot.length?` (motif : ${llist(mot)})`:''}.${D.motif_txt?' '+D.motif_txt.trim():''}${D.date_cs?` Je l${fem?'’ai reçue':'’ai reçu'} en consultation le ${fr(D.date_cs)}.`:''}`);
+  if(D.conduite&&D.conduite!=='Ne conduit pas')L.push(D.conduite==='Permis B'?'Titulaire du permis B.':'Conducteur professionnel ou poste de sécurité.');
+
+  const G=[['a_cv','Cardiovasculaires'],['a_met','Métaboliques et endocriniens'],['a_resp','Respiratoires'],['a_orl','ORL et maxillo-faciaux'],['a_neuro','Neurologiques et psychiatriques'],['a_autre','Autres'],['a_som','Sommeil'],['a_fam','Familiaux']];
+  sec('Antécédents',[...G.filter(([k])=>arr(k).length).map(([k,t])=>`- ${t} : ${llist(arr(k))}.`),D.a_txt?`- ${D.a_txt.trim()}`:'']);
+
+  const tox=[];
+  if(num('alcool')!=null)tox.push(num('alcool')===0?'pas d’alcool':`alcool ${fx(num('alcool'))} verre(s)/semaine${D.alcool_soir==='Oui'?', consommé le soir':''}`);
+  else if(D.alcool_soir==='Oui')tox.push('consommation d’alcool le soir');
+  if(D.tabac)tox.push(D.tabac==='Jamais'?'non-fumeur':`tabac ${D.tabac==='Sevré'?'sevré':'actif'}${num('pa')!=null?` (${fx(num('pa'))} PA)`:''}`);
+  if(D.cannabis==='Oui')tox.push('cannabis');
+  if(num('cafe')!=null)tox.push(`${fx(num('cafe'))} boisson(s) caféinée(s)/jour`);
+  sec('Traitements et mode de vie',[D.ttt_txt?`Traitement : ${D.ttt_txt.trim()}`:'',arr('ttt_sed').length?`Traitements sédatifs : ${llist(arr('ttt_sed'))}.`:'',tox.length?cap(list(tox))+'.':'']);
+
+  const sl=[];
+  if(D.coucher)sl.push(`coucher vers ${D.coucher}`);if(D.lever)sl.push(`lever vers ${D.lever}`);{const d=tib();if(d)sl.push(`temps au lit ${d}`)}
+  if(num('latence')!=null)sl.push(`latence d’endormissement ${fx(num('latence'),0)} min`);
+  if(num('reveils')!=null)sl.push(`${fx(num('reveils'),0)} réveil(s) nocturne(s)`);
+  if(D.sieste)sl.push(`sieste ${lc(D.sieste)}`);
+  if(D.position)sl.push(`position d’endormissement : ${lc(D.position)}`);
+  sec('Sommeil',[sl.length?cap(list(sl))+'.':'',arr('som_x').length?llist(arr('som_x')).replace(/^./,c=>c.toUpperCase())+'.':'',D.temoin?(D.temoin==='Dort seul'?'Dort seul, pas de témoin du sommeil.':'Conjoint témoin du sommeil.'):'']);
+
+  const n=[];
+  if(D.ronfl)n.push(D.ronfl==='Absent'?'Pas de ronflement rapporté':`Ronflement ${lc(D.ronfl)}${D.ronfl_fort==='Oui'?', audible porte fermée':''}`);
+  if(D.pauses)n.push(D.pauses==='Oui'?'pauses respiratoires constatées par l’entourage':D.pauses==='Non'?'pas de pause respiratoire constatée':'pauses respiratoires : pas de témoin fiable');
+  if(num('nycturie')!=null)n.push(`nycturie ${fx(num('nycturie'),0)}/nuit`);
+  sec('Symptômes nocturnes',[n.length?list(n)+'.':'',arr('noc').length?`Également : ${llist(arr('noc'))}.`:'']);
+
+  const dv=[];
+  if(arr('diu').length)dv.push(list(arr('diu'))+'.');
+  if(D.vol)dv.push(`Somnolence au volant : ${lc(D.vol)}.`);
+  if(D.accident&&D.accident!=='Non')dv.push(`${D.accident} lié à la somnolence${D.accident_txt?` (${D.accident_txt})`:''}.`);
+  else if(D.accident==='Non')dv.push('Pas d’accident lié à la somnolence.');
+  if(num('eva')!=null)dv.push(`Fatigue cotée ${fx(num('eva'))}/10.`);
+  sec('Retentissement diurne',dv);
+
+  const ex=[];const m=[];
+  if(num('poids')!=null)m.push(`poids ${fx(num('poids'))} kg`);
+  if(num('taille')!=null)m.push(`taille ${fx(num('taille'),0)} cm`);
+  if(I!=null)m.push(`IMC ${fx(I)} kg/m² (${imcCls(I)})`);
+  if(num('cou')!=null)m.push(`tour de cou ${fx(num('cou'))} cm`);
+  if(num('tt')!=null)m.push(`tour de taille ${fx(num('tt'))} cm`);
+  if(num('pas')!=null&&num('pad')!=null)m.push(`PA ${fx(num('pas'),0)}/${fx(num('pad'),0)} mmHg`);else if(num('pas')!=null)m.push(`PA systolique ${fx(num('pas'),0)} mmHg`);else if(num('pad')!=null)m.push(`PA diastolique ${fx(num('pad'),0)} mmHg`);
+  if(num('fc')!=null)m.push(`FC ${fx(num('fc'),0)}/min`);
+  if(m.length)ex.push(cap(list(m))+'.');
+  const o=[];if(D.mallampati)o.push(`Mallampati modifié classe ${D.mallampati}`);if(D.friedman)o.push(`amygdales Friedman ${D.friedman}`);o.push(...arr('exa'));
+  if(o.length)ex.push(list(o)+'.');
+  if(D.exa_txt)ex.push(D.exa_txt.trim());
+  sec('Examen clinique',ex);
+
+  const sc=[];
+  if(E&&E.n===8)sc.push(`- Échelle d’Epworth : ${E.s}/24 (${E.cls}).`);
+  if(sb&&!sb.missing.length){const pos=Object.entries(sb.it).filter(([,v])=>v).map(([k])=>k).join(', ');sc.push(`- STOP-Bang (seuil de tour de cou adapté au sexe) : ${sb.s}/8, risque ${sb.risk}${pos?` (${pos})`:''}.`)}
+  if(ns&&ns.full)sc.push(`- NoSAS : ${ns.s}/17, probabilité ${ns.high?'élevée (≥ 8)':'faible (< 8)'}.`);
+  sec('Scores',sc);
+
+  if(sv){
+    const pv=[];
+    const hd=[];if(D.pv_date)hd.push(`Enregistrement du ${fr(D.pv_date)}`);if(D.pv_app)hd.push(D.pv_app);if(num('pv_duree')!=null)hd.push(`durée analysable ${fx(num('pv_duree'))} h`);if(D.pv_qual)hd.push(`qualité ${lc(D.pv_qual)}`);
+    if(hd.length)pv.push(hd.join(', ')+'.');
+    let l=`IAH ${fx(num('iah'))}/h`;const sub=[];if(num('ia')!=null)sub.push(`apnées ${fx(num('ia'))}/h`);if(num('ih')!=null)sub.push(`hypopnées ${fx(num('ih'))}/h`);if(sub.length)l+=` (${sub.join(', ')})`;pv.push(l+'.');
+    const ap=[];if(num('iao')!=null)ap.push(`obstructives ${fx(num('iao'))}/h`);if(num('iac')!=null)ap.push(`centrales ${fx(num('iac'))}/h`);if(num('iam')!=null)ap.push(`mixtes ${fx(num('iam'))}/h`);if(ap.length)pv.push(`Apnées ${ap.join(', ')}.`);
+    {const po=[];if(p.dos!=null)po.push(`IAH en décubitus dorsal ${fx(p.dos)}/h`);if(p.nd!=null)po.push(`${po.length?'hors':'IAH hors'} décubitus dorsal ${fx(p.nd)}/h`);if(num('pct_dos')!=null)po.push(`${fx(num('pct_dos'),0)} % du temps sur le dos`);if(po.length)pv.push(po.join(', ')+'.')}
+    const ox=[];if(num('odi')!=null)ox.push(`IDO (index de désaturation en oxygène) ${fx(num('odi'))}/h`);if(num('spo2_moy')!=null)ox.push(`SpO₂ moyenne ${fx(num('spo2_moy'))} %`);if(p.nad!=null)ox.push(`nadir ${fx(p.nad)} %`);if(p.t90!=null)ox.push(`temps sous 90 % : ${fx(p.t90)} %`);if(num('hb')!=null)ox.push(`charge hypoxique ${fx(num('hb'))} %·min/h`);if(ox.length)pv.push(list(ox)+'.');
+    const ot=[];if(num('fc_moy')!=null)ot.push(`FC moyenne ${fx(num('fc_moy'),0)}/min`);if(num('ronfl_pct')!=null)ot.push(`ronflement ${fx(num('ronfl_pct'),0)} % du temps`);if(D.csr)ot.push(D.csr==='Oui'?'respiration de Cheyne-Stokes présente':'pas de respiration de Cheyne-Stokes');if(ot.length)pv.push(list(ot)+'.');
+    if(D.pv_txt)pv.push(D.pv_txt.trim());
+    sec('Polygraphie ventilatoire nocturne',pv);
+
+    let c;
+    if(sv.k===0)c=`Absence de syndrome d’apnées du sommeil significatif (IAH ${fx(p.iah)}/h).`;
+    else{
+      c=`Syndrome d’apnées du sommeil ${p.central?'à prédominance centrale':'obstructif'} ${['','léger','modéré','sévère'][sv.k]} (IAH ${fx(p.iah)}/h)`;
+      const q=[];if(p.positional)q.push(p.posExclusive?'de type positionnel strict':'à composante positionnelle');if(p.hypox)q.push(`avec hypoxémie nocturne${p.nad!=null?` (nadir ${fx(p.nad)} %${p.t90!=null?`, T90 ${fx(p.t90)} %`:''})`:''}`);if(p.csr)q.push('avec respiration de Cheyne-Stokes');
+      if(q.length)c+=', '+q.join(', ');
+      const sym=[];if(E&&E.s>10)sym.push('une somnolence diurne excessive');if(D.vol&&D.vol!=='Jamais')sym.push('une somnolence au volant');
+      c+=sym.length?`, associé à ${sym.join(' et ')}.`:'.';
+    }
+    if(sv.k===0&&sb&&sb.risk==='élevé')c+=' La probabilité clinique reste élevée ; la polygraphie pouvant sous-estimer l’IAH, une polysomnographie se discute.';
+    if(D.pv_qual==='Insuffisante')c+=' Tracé de qualité insuffisante : l’examen est à refaire ou à compléter.';
+    sec('Conclusion',[c,D.ccl_txt?D.ccl_txt.trim():'']);
+  } else {
+    const r=[];
+    const sbF=sb&&!sb.missing.length,nsF=ns&&ns.full;if(sbF||nsF||(E&&E.s>10)){const parts=[];if(sbF)parts.push(`risque STOP-Bang ${sb.risk}`);if(nsF)parts.push(`NoSAS ${ns.high?'élevé':'faible'}`);if(E&&E.s>10)parts.push(`${E.cls}`);r.push(`Probabilité clinique : ${parts.join(', ')}.`)}
+    r.push('Une polygraphie ventilatoire nocturne est programmée. Je vous adresserai le compte rendu dès réception des résultats.');
+    if(D.ccl_txt)r.push(D.ccl_txt.trim());
+    sec('Synthèse',r);
+  }
+  const pr=arr('prop');
+  if(pr.length){
+    const lines=pr.map(x=>`- ${x}${x===PROPS[9]?' : risque lié à la somnolence au volant et règles d’aptitude médicale à la conduite (arrêté du 28 mars 2022) expliqués au patient.':'.'}`);
+    sec('Propositions',lines);
+  }
+  L.push('','Je reste à votre disposition pour tout renseignement complémentaire.','','Bien confraternellement,','',PR.doc_nom||'');
+  return L.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function tib(){if(!D.coucher||!D.lever)return'';const[a,b]=D.coucher.split(':').map(Number),[c,d]=D.lever.split(':').map(Number);let m=(c*60+d)-(a*60+b);if(m<=0)m+=1440;return `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`}
+
+/* ---------- mise à jour ---------- */
+function gauge(segs,val,max,cols){const pos=Math.max(0,Math.min(val,max))/max*100;return `<div class="gauge" style="grid-template-columns:${segs.map(x=>x[0]+'fr').join(' ')}">${segs.map(x=>`<i style="background:${x[1]}"></i>`).join('')}<span class="mk" style="left:${pos}%"></span></div><div class="ticks" style="grid-template-columns:${segs.map(x=>x[0]+'fr').join(' ')}">${cols.map(t=>`<span>${t}</span>`).join('')}</div>`}
+function renderScores(I,E,sb,ns,sv,a){
+  const c=document.getElementById('strip'),cou=num('cou');
+  const morpho=`<div class="sc"><span class="k">Morphologie</span><div class="v"><b>${I!=null?fx(I):'—'}</b><span>${I!=null?'kg/m²':'IMC'}</span></div><div class="tags">${I!=null?`<span class="tag ${I>=35?'bad':I>=30?'warn':I>=25?'warn':'ok'}">${cap(imcCls(I))}</span>`:''}${cou!=null?`<span class="tag">Cou ${fx(cou)} cm</span>`:''}${a!=null?`<span class="tag">${a} ans</span>`:''}</div></div>`;
+  const ep=`<div class="sc"><span class="k">Epworth</span><div class="v"><b>${E?E.s:'—'}</b><span>/ 24${E?' · '+(E.n<8?`incomplet ${E.n}/8`:E.cls):''}</span></div>${gauge([[10,'#CDEBDD'],[2,'#FBE3B8'],[3,'#F5C27E'],[9,'#F0AEB6']],E?E.s:0,24,['0','10','12','15'])}</div>`;
+  const it=sb?sb.it:{};
+  const sbc=`<div class="sc"><span class="k">STOP-Bang</span><div class="v"><b>${sb?sb.s:'—'}</b><span>/ 8${sb?' · '+(sb.missing.length?'incomplet':'risque '+sb.risk):''}</span></div><div class="sbdots">${['S','T','O','P','B','A','N','G'].map(L=>`<span class="${it[L]?'on':''}">${L}</span>`).join('')}</div></div>`;
+  const nsc=`<div class="sc"><span class="k">NoSAS</span><div class="v"><b>${ns?ns.s:'—'}</b><span>/ 17 · seuil 8</span></div><div class="bar"><i style="width:${ns?ns.s/17*100:0}%;background:${ns&&ns.high?'var(--bad-strong)':'var(--ok)'}"></i><u style="left:${8/17*100}%"></u></div><span class="tag ${ns?(ns.full?(ns.high?'bad':'ok'):''):''}" style="align-self:flex-start">${ns?(ns.full?(ns.high?'Probabilité élevée':'Probabilité faible'):'Incomplet'):'En attente'}</span></div>`;
+  const iah=num('iah');
+  const ia=`<div class="sc dark"><span class="k">IAH · polygraphie</span><div class="v"><b>${sv?fx(iah):'—'}</b><span>${sv?'/h · '+sv.t:'en attente des résultats'}</span></div>${gauge([[5,'#3E8F6E'],[10,'#C9A04A'],[15,'#D9774B'],[30,'#E0566A']],sv?iah:0,60,['0','5','15','30+'])}</div>`;
+  c.innerHTML=morpho+ep+sbc+nsc+ia;
+  if(!sv)c.querySelector('.sc.dark .mk').hidden=true;
+  if(!E)c.querySelectorAll('.sc')[1].querySelector('.mk').hidden=true;
+}
+function renderChrome(){
+  const male=D.sexe==='Homme',fem=D.sexe==='Femme',a=age();
+  const nm=[(D.nom||'').toUpperCase(),D.prenom].filter(Boolean).join(' ');
+  document.getElementById('pAv').textContent=nm?((D.prenom||'')[0]||'')+((D.nom||'')[0]||'')||'—':'—';
+  document.getElementById('pAv').textContent=document.getElementById('pAv').textContent.toUpperCase()||'—';
+  document.getElementById('pName').textContent=nm?[male?'M.':fem?'Mme':'',nm].filter(Boolean).join(' ')+(a!=null?` · ${a} ans`:''):'Nouveau patient';
+  const sub=[D.adr_nom?`Adressé${fem?'e':''} par ${D.adr_nom}`:'',D.date_cs?`consultation du ${fr(D.date_cs)}`:''].filter(Boolean).join(' · ');
+  document.getElementById('pSub').textContent=sub||'Saisissez l’identité ou scannez le code patient';
+  let n=0;
+  document.getElementById('stepNav').innerHTML=S.filter(s=>s.id!=='praticien').concat(S.filter(s=>s.id==='praticien')).map(s=>{
+    const ks=s.f.flatMap(f=>f.type==='sb'?['sb_s','sb_t','sb_o','sb_p']:f.type==='eps'?['eps']:f.k?[f.k]:[]);
+    const src=s.id==='praticien'?PR:D;const done=ks.filter(k=>filled(src[k])).length;
+    const num=s.id==='praticien'?'⚙':String(++n).padStart(2,'0');
+    return `<li><a href="#sec_${s.id}" data-sec="${s.id}" class="${done&&s.id!=='praticien'?'done':''}"><span class="n">${num}</span><span class="t">${esc(s.id==='praticien'?'Réglages':s.t)}</span><span class="c">${s.id!=='praticien'&&ks.length?`${done}/${ks.length}`:''}</span></a></li>`}).join('');
+}
+function update(){autosave();
+  const I=imc(),E=epw(),sb=stopbang(),ns=nosas(),sv=sev(),a=age();
+  renderScores(I,E,sb,ns,sv,a);renderChrome();
+  // visibilité des options selon le sexe
+  ALLF.forEach(f=>{if(f.hide)Object.entries(f.hide).forEach(([o,fn])=>{const b=document.querySelector(`.chip[data-k="${f.k}"][data-v="${CSS.escape(o)}"]`);if(b)b.hidden=!fn(D)})});
+  // compteurs
+  S.forEach(s=>{if(s.id==='praticien')return;const ks=s.f.flatMap(f=>f.type==='sb'?['sb_s','sb_t','sb_o','sb_p']:f.k?[f.k]:[]);const n=ks.filter(k=>filled(D[k])).length;document.getElementById('cnt_'+s.id).textContent=n?`${n}/${ks.length}`:''});
+  // calculs affichés
+  const cm=document.getElementById('calcMes');cm.textContent=I!=null?`IMC ${fx(I)} kg/m² · ${imcCls(I)}${num('cou')!=null?` · cou ${fx(num('cou'))} cm`:''}`:'IMC calculé dès que poids et taille sont saisis';
+  const cs=document.getElementById('calcSom');const t=tib();cs.textContent=t?`Temps passé au lit : ${t}`:'Temps au lit calculé à partir des horaires';
+  const cp=document.getElementById('calcPv');const p=pvFlags();
+  {const tg=sv?[sv.t[0].toUpperCase()+sv.t.slice(1),p.positional?(p.posExclusive?'SAOS positionnel strict':'Composante positionnelle'):'',p.central?'Prédominance centrale':'',p.hypox?'Hypoxémie nocturne':'',p.csr?'Cheyne-Stokes':''].filter(Boolean):[];cp.classList.toggle('read',!!sv&&sv.k>0);cp.innerHTML=sv?`<strong>Lecture automatique</strong>${tg.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}`:'Classification : &lt; 5 normal · 5–15 léger · 15–30 modéré · ≥ 30 sévère'}
+  if(sb){['B','A','N','G'].forEach(L=>{const el=document.getElementById('sbauto_'+L);el.textContent=sb.it[L]?'Oui':'Non';el.classList.toggle('y',sb.it[L])});
+    document.getElementById('calcSb').textContent=sb.missing.length?`Incomplet (manque : ${sb.missing.join(', ')}) : le STOP-Bang n’apparaîtra pas dans le courrier`:`Score ${sb.s}/8 · risque ${sb.risk} (0–2 faible, 3–4 intermédiaire, 5–8 élevé ; élevé aussi si ≥ 2 STOP + homme, IMC > 35 ou cou large)`;}
+  else document.getElementById('calcSb').textContent='Score calculé au fil de la saisie';
+  const hS=document.getElementById('h_sb_s');hS.textContent=!D.sb_s&&(D.ronfl_fort==='Oui')?'Suggéré : oui (ronflement audible porte fermée)':'';
+  const hT=document.getElementById('h_sb_t');hT.textContent=!D.sb_t&&((E&&E.s>10)||arr('diu').includes('Fatigue'))?'Suggéré : oui (fatigue ou Epworth > 10)':'';
+  const hO=document.getElementById('h_sb_o');hO.textContent=!D.sb_o&&D.pauses==='Oui'?'Suggéré : oui (pauses observées)':'';
+  const hP=document.getElementById('h_sb_p');hP.textContent=!D.sb_p&&arr('a_cv').some(x=>x.startsWith('HTA'))?'Suggéré : oui (HTA en antécédent)':'';
+  // suggestions
+  const sg=suggestions(),box=document.getElementById('sugg');
+  const toAdd=sg.map(x=>x[1]).filter(x=>x&&!arr('prop').includes(x));
+  box.innerHTML=sg.length?`<p><b>Suggestions</b> ${sv?'':'(avant résultats)'}</p><ul>${sg.filter(x=>x[0]).map(x=>`<li>${esc(x[0])}</li>`).join('')}</ul>${toAdd.length?`<div><button type="button" class="btn" id="applySugg">Cocher les ${toAdd.length} proposition(s) suggérée(s)</button></div>`:''}`:`<p class="hint">Les suggestions apparaissent avec les scores et les résultats de polygraphie.</p>`;
+  document.getElementById('crTitle').textContent=sv?'Compte rendu de polygraphie':'Courrier de consultation';
+  document.getElementById('letter').textContent=buildReport();
+  document.getElementById('exBanner').hidden=!D.__example;
+}
+
+/* ---------- événements ---------- */
+function setStatus(t){const s=document.getElementById('status');s.textContent=t;clearTimeout(setStatus.t);setStatus.t=setTimeout(()=>s.textContent='',2500)}
+function savePR(){try{localStorage.setItem(PRKEY,JSON.stringify(PR))}catch(e){}}
+document.getElementById('sections').addEventListener('input',e=>{
+  const k=e.target.dataset.k;if(!k)return;
+  if(k.startsWith('doc_')){PR[k]=e.target.value;savePR()}else D[k]=e.target.value;
+  update();
+});
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip');
+  if(c){
+    if(c.dataset.eps!=null){const i=+c.dataset.eps,v=+c.dataset.v;D.eps=D.eps||Array(8).fill(null);D.eps[i]=D.eps[i]===v?null:v;
+      c.parentElement.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',String(D.eps[i]===+b.dataset.v)));}
+    else{const k=c.dataset.k,v=c.dataset.v;
+      if(c.dataset.mode==='multi'){const a=arr(k).slice(),i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);D[k]=a;c.setAttribute('aria-pressed',String(i<0))}
+      else{D[k]=D[k]===v?'':v;document.querySelectorAll(`.chip[data-k="${k}"]`).forEach(b=>b.setAttribute('aria-pressed',String(D[k]===b.dataset.v)))}}
+    update();return;
+  }
+  if(e.target.id==='applySugg'){const add=suggestions().map(x=>x[1]).filter(Boolean);D.prop=[...new Set([...arr('prop'),...add])];syncInputs();update();setStatus('Propositions cochées');}
+});
+async function copy(text,ok){
+  try{await navigator.clipboard.writeText(text);setStatus(ok)}
+  catch(err){const el=document.getElementById('letter');const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);setStatus('Copie bloquée : texte sélectionné, utilisez ⌘C')}
+}
+document.getElementById('copyTxt').onclick=()=>copy(document.getElementById('letter').textContent,'Courrier copié');
+document.getElementById('copyTxt2').onclick=()=>document.getElementById('copyTxt').click();
+document.getElementById('stepNav').addEventListener('click',e=>{const l=e.target.closest('a[data-sec]');if(!l)return;e.preventDefault();const d=document.getElementById('sec_'+l.dataset.sec);if(d){d.open=true;d.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}});
+document.getElementById('copyJson').onclick=()=>{const o={...D};delete o.__example;copy(JSON.stringify({module:'saos',version:1,data:o},null,1),'Données JSON copiées')};
+document.getElementById('importBtn').onclick=()=>{
+  try{const j=JSON.parse(document.getElementById('importBox').value);D=j.data||j;document.getElementById('importBox').value='';syncInputs();update();setStatus('Patient chargé')}
+  catch(e){setStatus('JSON illisible : vérifiez que le texte collé est complet')}
+};
+function clearPatient(){D={date_cs:todayISO()};syncInputs();update();dMsg('Nouveau dossier vide.');window.scrollTo({top:0})}
+const rb=document.getElementById('reset');
+rb.onclick=()=>{if(rb.classList.contains('armed')){rb.classList.remove('armed');rb.textContent='Nouveau patient';clearPatient();setStatus('Formulaire vidé')}else{rb.classList.add('armed');rb.textContent='Confirmer l’effacement';setTimeout(()=>{rb.classList.remove('armed');rb.textContent='Nouveau patient'},4000)}};
+document.getElementById('exClear').onclick=()=>clearPatient();
+
+/* ---------- codec du questionnaire patient (format v1 : ne jamais réordonner SPEC, seulement ajouter) ---------- */
+const QSPEC=[['conduite','r'],['motif','m'],['poids','n',9],['taille','n',9],['coucher','t'],['lever','t'],['latence','n',9],['reveils','n',5],['sieste','r'],['position','r'],['temoin','r'],['som_x','m'],['ronfl','r'],['ronfl_fort','r'],['pauses','r'],['nycturie','n',4],['noc','m'],['diu','m'],['vol','r'],['accident','r'],['eva','n',4],['eps','e'],['sb_t','r'],['sb_o','r'],['sb_p','r'],['a_cv','m'],['a_met','m'],['a_resp','m'],['a_orl','m'],['a_neuro','m'],['a_autre','m'],['a_som','m'],['a_fam','m'],['alcool','n',8],['alcool_soir','r'],['tabac','r'],['pa','n',7],['cannabis','r'],['cafe','n',5],['accident_txt','x'],['a_txt','x'],['ttt_txt','x']];
+const QC=(()=>{
+  const A='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const bw=n=>Math.ceil(Math.log2(n+1));
+  const pn=v=>{if(v==null||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n};
+  const ck=a=>a.reduce((c,b)=>(c*33+b+1)%251,17);
+  function encode(D,O){
+    const bits=[],put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)},tx=[];
+    for(const[k,t,n]of QSPEC){
+      if(t==='r'){const o=O[k];put(o.indexOf(D[k])+1,bw(o.length))}
+      else if(t==='m'){const a=Array.isArray(D[k])?D[k]:[];O[k].forEach(x=>put(a.includes(x)?1:0,1))}
+      else if(t==='n'){const v=pn(D[k]);put(v==null||v<0?0:Math.min(Math.round(v)+1,2**n-1),n)}
+      else if(t==='t'){let v=0;const m=/^(\d{1,2}):(\d{2})/.exec(D[k]||'');if(m)v=Math.round((+m[1]*60+ +m[2])/5)%288+1;put(v,9)}
+      else if(t==='e'){const e=D.eps||[];for(let i=0;i<8;i++)put(e[i]==null?0:e[i]+1,3)}
+      else if(t==='x')tx.push(String(D[k]||'').trim().slice(0,240));
+    }
+    while(bits.length%8)bits.push(0);
+    const p=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=b*2+bits[i+j];p.push(b)}
+    const te=new TextEncoder();
+    for(const s of tx){let u=te.encode(s);if(u.length>255)u=u.slice(0,255);p.push(u.length,...u)}
+    while(p.length&&p[p.length-1]===0)p.pop();
+    const all=[1,ck(p),...p];
+    let out='',acc=0,nb=0;
+    for(const b of all){acc=(acc<<8)|b;nb+=8;while(nb>=5){out+=A[(acc>>(nb-5))&31];nb-=5}acc&=(1<<nb)-1}
+    if(nb)out+=A[(acc<<(5-nb))&31];
+    return out.match(/.{1,4}/g).join('-');
+  }
+  function decode(code,O){
+    const s=String(code||'').toUpperCase().replace(/O/g,'0').replace(/[IL]/g,'1').replace(/[\s\-–.]/g,'');
+    if(!s)return{error:'Aucun code saisi.'};
+    if(/[^0-9A-Z]/.test(s)||s.includes('U'))return{error:'Le code contient des caractères inattendus.'};
+    const by=[];let acc=0,nb=0;
+    for(const c of s){acc=(acc<<5)|A.indexOf(c);nb+=5;if(nb>=8){by.push((acc>>(nb-8))&255);nb-=8}acc&=(1<<nb)-1}
+    if(by[0]!==1)return{error:'Ce code ne correspond pas à un questionnaire sommeil.'};
+    const p=by.slice(2);while(p.length&&p[p.length-1]===0)p.pop();
+    if(ck(p)!==by[1])return{error:'Code incorrect : un caractère semble mal recopié.'};
+    let bi=0;const get=n=>{let v=0;for(let i=0;i<n;i++){const B=p[bi>>3]||0;v=v*2+((B>>(7-(bi&7)))&1);bi++}return v};
+    const D={},tx=[];
+    for(const[k,t,n]of QSPEC){
+      if(t==='r'){const o=O[k],i=get(bw(o.length))-1;if(i>=0&&i<o.length)D[k]=o[i]}
+      else if(t==='m'){const a=O[k].filter(()=>get(1));if(a.length)D[k]=a}
+      else if(t==='n'){const v=get(n);if(v>0)D[k]=String(v-1)}
+      else if(t==='t'){const v=get(9);if(v>0){const m=(v-1)*5;D[k]=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}}
+      else if(t==='e'){const e=[];for(let i=0;i<8;i++){const v=get(3);e.push(v?v-1:null)}if(e.some(x=>x!=null))D.eps=e}
+      else if(t==='x')tx.push(k);
+    }
+    let pos=Math.ceil(bi/8);const td=new TextDecoder();
+    for(const k of tx){const L=p[pos]||0;pos++;const t=td.decode(new Uint8Array(p.slice(pos,pos+L)));pos+=L;if(t)D[k]=t}
+    return{data:D};
+  }
+  return{encode,decode};
+})();
+
+const QOPTS=(()=>{const o={sb_t:YN,sb_o:YN,sb_p:YN};ALLF.forEach(f=>{if(f.o)o[f.k]=f.o});return o})();
+const AZ={'&':'1','é':'2','"':'3',"'":'4','(':'5','§':'6','-':'6','è':'7','!':'8','_':'8','ç':'9','à':'0',')':'-','?':'M',',':'M',';':'M',A:'Q',Q:'A',Z:'W',W:'Z',a:'Q',q:'A',z:'W',w:'Z'};
+const deAzerty=s=>[...String(s)].map(c=>AZ[c]??c).join('');
+function importCode(code){
+  let r=QC.decode(code,QOPTS);
+  if(r.error){const r2=QC.decode(deAzerty(code),QOPTS);if(!r2.error)r=r2}
+  const m=document.getElementById('qmsg');
+  if(r.error){m.textContent=r.error;m.style.color='var(--bad)';return false}
+  const n=Object.keys(r.data).length;
+  D=D.__example?{date_cs:todayISO(),...r.data}:{...D,...r.data};
+  syncInputs();update();
+  m.style.color='var(--ok)';m.textContent=`${n} réponse(s) importée(s). Complétez nom, date de naissance, sexe, mesures et examen.`;
+  document.getElementById('qcode').value='';return true;
+}
+/* scanner de QR code (douchette) : il tape le code très vite puis Entrée, où que soit le curseur */
+let sBuf='',sLast=0;
+document.addEventListener('keydown',e=>{
+  const t=e.target;if(t&&t.id==='qcode')return;
+  const now=performance.now();if(now-sLast>60)sBuf='';sLast=now;
+  if(e.key==='Enter'){if(sBuf.length>=12&&importCode(sBuf)){e.preventDefault();if(t&&'value' in t&&t.value.endsWith(sBuf))t.value=t.value.slice(0,-sBuf.length)}sBuf='';return}
+  if(e.key.length===1)sBuf+=e.key;
+});
+document.getElementById('qimport').onclick=()=>importCode(document.getElementById('qcode').value);
+document.getElementById('qcode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();importCode(e.target.value)}});
+/* ---------- import du rapport Noxturnal (PDF lu localement, rien n'est envoyé) ---------- */
+function noxLines(pages){
+  /* pages : tableaux d'items {str, x, y} ; regroupe en lignes de gauche à droite */
+  const out=[];
+  for(const items of pages){
+    const rows=[];
+    for(const it of items){if(!it.str||!it.str.trim())continue;let r=rows.find(r=>Math.abs(r.y-it.y)<2.5);if(!r){r={y:it.y,a:[]};rows.push(r)}r.a.push(it)}
+    rows.sort((a,b)=>b.y-a.y);
+    for(const r of rows)out.push(r.a.sort((a,b)=>a.x-b.x).map(i=>i.str).join(' ').replace(/\s+/g,' ').trim());
+  }
+  return out;
+}
+function parseNox(lines){
+  const T=lines.join('\n');
+  const N='(\\d+(?:[.,]\\d+)?)';
+  const g=(re,i=1)=>{const m=re.exec(T);return m?m[i].replace('.',','):null};
+  const r={},set=(k,v)=>{if(v!=null&&v!=='')r[k]=v};
+  if(!/Noxturnal|Nox T3|polygraphie ventilatoire|Index Apn[ée]es Hypopn[ée]es/i.test(T))return{error:'Ce PDF ne ressemble pas à un rapport Noxturnal.'};
+  /* enregistrement */
+  const dt=/Date de l[’']enregistrement\s+(\d{2})\/(\d{2})\/(\d{4})/.exec(T);if(dt)set('pv_date',`${dt[3]}-${dt[2]}-${dt[1]}`);
+  const app=/dispositif\s+(Nox\s*[A-Z0-9]+)/i.exec(T);if(app)set('pv_app',app[1].replace(/\s+/,' '));
+  const da=/Dur[ée]e d[’']analyse\s+[^\n]*?([\d.,]+)\s*min/.exec(T);if(da){const h=parseFloat(da[1].replace(',','.'))/60;if(h>0)set('pv_duree',String(Math.round(h*10)/10).replace('.',','))}
+  const q=g(new RegExp('Qualit[ée] de l[’\']enregistrement\\s+'+N+'\\s*%'));if(q!=null&&parseFloat(q.replace(',','.'))>=90)set('pv_qual','Bonne');
+  /* évènements */
+  set('iah',g(new RegExp('Index Apn[ée]es Hypopn[ée]es\\s+'+N+'\\s*/h'))??g(new RegExp('\\(IAH\\)\\s+'+N+'\\s*/h')));
+  set('iah_dos',g(new RegExp('IAH dorsal\\s+'+N+'\\s*/h')));
+  set('iah_nd',g(new RegExp('IAH non-dorsal\\s+'+N+'\\s*/h')));
+  set('ia',g(new RegExp('^Apn[ée]es \\([\\d.,]+\\s*%\\)\\s+\\d+\\s+'+N+'\\s*/h','m')));
+  set('ih',g(new RegExp('^Hypopn[ée]es \\([\\d.,]+\\s*%\\)\\s+\\d+\\s+'+N+'\\s*/h','m'))??g(new RegExp('Hypopn[ée]es\\s+\\d+\\s+soit\\s+'+N+'\\s*/h')));
+  set('iao',g(new RegExp('Apn[ée]es obstructives\\s+\\d+\\s+soit\\s+'+N+'\\s*/h')));
+  set('iac',g(new RegExp('Apn[ée]es centrales\\s+\\d+\\s+soit\\s+'+N+'\\s*/h')));
+  set('iam',g(new RegExp('Apn[ée]es mixtes\\s+\\d+\\s+soit\\s+'+N+'\\s*/h')));
+  const cs=g(new RegExp('% Cheyne-Stokes\\s+'+N+'\\s*%'));if(cs!=null)set('csr',parseFloat(cs.replace(',','.'))>0?'Oui':'Non');
+  /* oxymétrie */
+  set('odi',g(new RegExp('\\(IDO\\)\\s+'+N+'\\s*/h'))??g(new RegExp('Index de d[ée]saturations?\\s+'+N+'\\s*/h')));
+  set('spo2_moy',g(new RegExp('SpO2 moyenne\\s+'+N+'\\s*%')));
+  set('spo2_min',g(new RegExp('SpO2 la plus faible\\s+'+N+'\\s*%'))??g(new RegExp('SpO2 minimale\\s+'+N+'\\s*%')));
+  set('t90',g(new RegExp('Dur[ée]e SpO2\\s*<\\s*90\\s*%\\s+'+N+'\\s*%'))??g(new RegExp('SpO2\\s*<\\s*90\\s*%\\s*\\([^)]*\\)\\s+'+N+'\\s*%')));
+  set('hb',g(new RegExp('(?:Charge hypoxique|Hypoxic burden)[^\\n\\d]*'+N,'i')));
+  set('fc_moy',g(new RegExp('Pouls moyen\\s+'+N+'\\s*bpm')));
+  /* ronflement et position */
+  set('ronfl_pct',g(new RegExp('Episodes? de ronflements\\s+'+N+'\\s*%')));
+  set('pct_dos',g(new RegExp('^Dorsale\\s+[\\d.,]+\\s*min\\s+'+N+'\\s*%','m')));
+  /* identité et mesures (utilisées seulement si les champs sont vides) */
+  const id={};
+  const nm=/^Nom\s+(.+)$/m.exec(T),hd=/^([^,\n]+),\s*([^\n]+?)\s+Enregistrement du/m.exec(T);
+  if(hd){id.nom=hd[1].trim();id.prenom=hd[2].trim()}else if(nm)id.nom=nm[1].trim();
+  const dn=/[ÂA]ge\s+(\d{2})\/(\d{2})\/(\d{4})/.exec(T);if(dn)id.ddn=`${dn[3]}-${dn[2]}-${dn[1]}`;
+  const ta=new RegExp('Taille\\s+'+N+'\\s*cm').exec(T);if(ta)id.taille=ta[1].replace('.',',');
+  const po=new RegExp('Poids\\s+'+N+'\\s*kg').exec(T);if(po)id.poids=po[1].replace('.',',');
+  return{pv:r,id};
+}
+let pdfjsReady=null;
+function loadPdfjs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(pdfjsReady)return pdfjsReady;
+  const base='./';
+  const add=src=>new Promise((ok,ko)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
+  pdfjsReady=add(base+'pdf.min.js').then(()=>add(base+'pdf.worker.min.js')).then(()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc=base+'pdf.worker.min.js';return window.pdfjsLib}).catch(e=>{pdfjsReady=null;throw e});
+  return pdfjsReady;
+}
+async function readNoxPdf(file){
+  const lib=await loadPdfjs();
+  const doc=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;
+  const pages=[];
+  for(let i=1;i<=Math.min(doc.numPages,4);i++){const tc=await (await doc.getPage(i)).getTextContent();pages.push(tc.items.map(it=>({str:it.str,x:it.transform[4],y:it.transform[5]})))}
+  return parseNox(noxLines(pages));
+}
+
+const NOX_ID=['nom','prenom','ddn','taille','poids'];
+async function importNox(file){
+  const m=document.getElementById('noxMsg');
+  if(!file||!/pdf$/i.test(file.type||file.name)){m.style.color='var(--bad)';m.textContent='Déposez le PDF du rapport Noxturnal.';return}
+  m.style.color='var(--muted)';m.textContent='Lecture du PDF…';
+  let r;
+  try{r=await readNoxPdf(file)}catch(e){m.style.color='var(--bad)';m.textContent='Impossible de lire ce PDF. Vérifiez qu’il s’agit bien du rapport exporté depuis Noxturnal.';return}
+  if(r.error){m.style.color='var(--bad)';m.textContent=r.error;return}
+  if(D.__example)D={date_cs:todayISO()};
+  const n=Object.keys(r.pv).length;Object.assign(D,r.pv);
+  let idn=0;
+  for(const k of NOX_ID){const v=r.id[k];if(v&&!filled(D[k])){D[k]=k==='prenom'?v.toLowerCase().replace(/(^|[\s-])\S/g,c=>c.toUpperCase()):v;idn++}}
+  syncInputs();update();
+  m.style.color='var(--ok)';m.textContent=n?`${n} valeur(s) de polygraphie importée(s)${idn?`, ${idn} champ(s) d’identité ou de mesure complété(s)`:''}. Vérifiez-les avant d’envoyer le courrier.`:'Aucune valeur reconnue dans ce PDF.';
+}
+document.addEventListener('change',e=>{if(e.target.id==='noxFile'){importNox(e.target.files[0]);e.target.value=''}});
+document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('#noxDrop')){e.preventDefault();document.getElementById('noxDrop').classList.add('over')}});
+document.addEventListener('dragleave',e=>{const z=document.getElementById('noxDrop');if(z&&e.target===z)z.classList.remove('over')});
+document.addEventListener('drop',e=>{const z=e.target.closest&&e.target.closest('#noxDrop');if(!z)return;e.preventDefault();z.classList.remove('over');importNox(e.dataTransfer.files[0])});
+/* ---------- démarrage ---------- */
+const EXAMPLE={__example:true,nom:'Exemple',prenom:'Jean',ddn:'1968-03-12',date_cs:'2026-10-02',sexe:'Homme',prof:'Chauffeur-livreur',conduite:'Conducteur professionnel / poste de sécurité',adr_nom:'Dr Martin',adr_ville:'Caen',adr_formule:'Cher confrère',motif:['Ronflement','Pauses respiratoires constatées','HTA résistante'],
+ poids:'104',taille:'178',cou:'45',tt:'112',pas:'152',pad:'94',fc:'74',coucher:'23:15',lever:'05:30',latence:'5',reveils:'3',sieste:'Quotidienne',position:'Dos',temoin:'Conjoint présent',som_x:['Dette de sommeil (moins de 6 h/nuit)'],
+ ronfl:'Quotidien',ronfl_fort:'Oui',pauses:'Oui',nycturie:'2',noc:['Éveils avec suffocation / étouffement','Bouche sèche au réveil'],
+ diu:['Sommeil non réparateur','Fatigue','Céphalées matinales','Troubles de la concentration','Gêne du conjoint / chambre séparée'],vol:'Lutte contre le sommeil',accident:'Presque-accident',accident_txt:'sortie de voie sur autoroute, été 2026',eva:'7',
+ eps:[2,3,1,2,3,0,2,1],sb_s:'Oui',sb_t:'Oui',sb_o:'Oui',sb_p:'Oui',
+ a_cv:['HTA','HTA résistante (3 traitements ou plus)'],a_met:['Obésité','Dyslipidémie'],a_orl:['Amygdalectomie'],a_neuro:['Migraine'],
+ ttt_txt:'Amlodipine 10 mg, périndopril 8 mg, indapamide 1,5 mg, atorvastatine 20 mg',alcool:'10',alcool_soir:'Oui',tabac:'Sevré',pa:'20',cafe:'4',
+ mallampati:'III',friedman:'1',exa:['Rétrognathie','Voile long / luette épaisse','Cou court et large'],
+ pv_date:'2026-10-14',pv_app:'Polygraphe type III',pv_duree:'7,2',pv_qual:'Bonne',iah:'34,2',ia:'21,5',ih:'12,7',iao:'18,9',iac:'1,4',iam:'1,2',iah_dos:'52,1',iah_nd:'18,3',pct_dos:'41',odi:'31',spo2_moy:'92',spo2_min:'78',t90:'12',hb:'84',fc_moy:'68',ronfl_pct:'46',csr:'Non'};
+try{PR=JSON.parse(localStorage.getItem(PRKEY)||'null')||null}catch(e){PR=null}
+if(!PR)PR={doc_nom:'',doc_titre:'Médecin généraliste',doc_cab:'Cabinet médical de Navarre',doc_ville:'Cormelles-le-Royal',doc_contact:''};
+render();
+D=JSON.parse(JSON.stringify(EXAMPLE));
+D.prop=[];D.prop=[...new Set(suggestions().map(x=>x[1]).filter(Boolean))];
+syncInputs();update();
+try{document.getElementById('qcode').focus({preventScroll:true})}catch(e){}
+if(/^#[0-9A-Za-z-]{8,}$/.test(location.hash))importCode(location.hash.slice(1));
+
+/* ---------- apparence : clair, sombre ou automatique (mémorisé dans ce navigateur) ---------- */
+(function(){
+  const K='saos_theme';let m='auto';
+  try{m=localStorage.getItem(K)||'auto'}catch(e){}
+  function apply(v){
+    const r=document.documentElement;
+    if(v==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',v);
+    document.querySelectorAll('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeSet===v)));
+    try{localStorage.setItem(K,v)}catch(e){}
+  }
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-theme-set]');if(b)apply(b.dataset.themeSet)});
+  apply(m);
+})();
+
+/* ---------- dossier en cours : enregistrement, ouverture et brouillon automatique ---------- */
+var DRAFT='saos_brouillon';
+function snapshot(){const o=JSON.parse(JSON.stringify(D));delete o.__example;return o}
+function hasData(){return Object.keys(D).some(k=>k!=='__example'&&k!=='date_cs'&&filled(D[k]))}
+function who(d){return [d.sexe==='Femme'?'Mme':d.sexe==='Homme'?'M.':'',(d.nom||'').toUpperCase(),d.prenom].filter(Boolean).join(' ')||'patient sans nom'}
+var draftT;
+function saveNow(){try{localStorage.setItem(DRAFT,JSON.stringify({v:2,at:Date.now(),data:JSON.parse(JSON.stringify(D)),open:[...document.querySelectorAll('details.sec[open]')].map(d=>d.id)}))}catch(e){}}
+function autosave(){clearTimeout(draftT);draftT=setTimeout(saveNow,250)}
+function dropDraft(){try{localStorage.removeItem(DRAFT)}catch(e){}}
+function dMsg(t,c){const m=document.getElementById('dMsg');m.textContent=t;m.style.color=c||'var(--muted)'}
+function loadDossier(data,label){
+  D=data;if(!D.date_cs)D.date_cs=todayISO();
+  syncInputs();update();
+  document.getElementById('draftBanner').hidden=true;
+  dMsg(`${label} : ${who(D)}. Complétez puis enregistrez à nouveau si besoin.`,'var(--ok)');
+}
+var pendingDossier=null;
+function offerDossier(data){
+  if(hasData()&&!D.__example){pendingDossier=data;document.getElementById('dConfirm').hidden=false;return}
+  loadDossier(data,'Dossier ouvert');
+}
+async function readDossierFile(file){
+  try{
+    const j=JSON.parse(await file.text());
+    const data=j&&j.app==='saos-depistage'?j.data:(j&&j.module==='saos'?j.data:null);
+    if(!data||typeof data!=='object')throw 0;
+    offerDossier(data);
+  }catch(e){dMsg('Ce fichier n’est pas un dossier de dépistage SAOS enregistré depuis cet outil.','var(--bad)')}
+}
+document.getElementById('dFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)readDossierFile(f)});
+document.getElementById('dYes').onclick=()=>{document.getElementById('dConfirm').hidden=true;if(pendingDossier)loadDossier(pendingDossier,'Dossier ouvert');pendingDossier=null};
+document.getElementById('dNo').onclick=()=>{document.getElementById('dConfirm').hidden=true;pendingDossier=null};
+document.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()});
+document.addEventListener('drop',e=>{
+  if(e.target.closest&&e.target.closest('#noxDrop'))return;
+  const f=e.dataTransfer&&e.dataTransfer.files[0];if(!f)return;e.preventDefault();
+  if(/\.json$/i.test(f.name)||f.type==='application/json')readDossierFile(f);
+  else if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){const d=document.getElementById('sec_pv');if(d)d.open=true;importNox(f)}
+});
+(async()=>{
+  const local=!window.claude;
+  const dl=local?{save:async({filename,data})=>{const u=URL.createObjectURL(new Blob([data],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download=filename;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);return{status:'saved'}}}:(window.claude.use?await window.claude.use('downloads'):null);
+  if(!dl)return;
+  const b=document.getElementById('dSave');b.hidden=false;
+  b.onclick=async()=>{
+    if(D.__example){dMsg('Le patient fictif ne s’enregistre pas : videz l’exemple et saisissez un vrai dossier.','var(--warn)');return}
+    if(!hasData()){dMsg('Rien à enregistrer pour le moment.','var(--warn)');return}
+    const safe=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9-]+/g,'-').replace(/^-|-$/g,'');
+    const name=['Depistage-SAOS',safe((D.nom||'').toUpperCase()),safe(D.prenom),todayISO()].filter(Boolean).join('_')+'.json';
+    const body=JSON.stringify({app:'saos-depistage',version:1,savedAt:new Date().toISOString(),data:snapshot()},null,1);
+    try{const r=await dl.save({filename:name,data:body});if(r.status==='saved')dMsg(`Dossier enregistré (${name}).`,'var(--ok)')}
+    catch(e){if(e&&e.code==='declined')return;dMsg('L’enregistrement n’est pas disponible ici.','var(--bad)')}
+  };
+})();
+(function(){
+  /* restauration automatique de l'état précédent (formulaire, imports, sections ouvertes) */
+  let d=null;try{d=JSON.parse(localStorage.getItem(DRAFT)||'null')}catch(e){}
+  if(d&&d.data&&typeof d.data==='object'){
+    D=d.data;syncInputs();update();
+    if(Array.isArray(d.open))document.querySelectorAll('details.sec').forEach(x=>{x.open=d.open.includes(x.id)});
+    if(!D.__example){const at=new Date(d.at);dMsg(`Dossier restauré : ${who(D)} (modifié le ${at.toLocaleDateString('fr-FR')} à ${at.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}).`,'var(--ok)')}
+    if(/^#[0-9A-Za-z-]{8,}$/.test(location.hash))importCode(location.hash.slice(1));
+  }
+  document.getElementById('sections').addEventListener('toggle',autosave,true);
+  window.addEventListener('pagehide',saveNow);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
+})();
+</script>
+
+<script src="portail-theme.js"></script></body>
+</html>

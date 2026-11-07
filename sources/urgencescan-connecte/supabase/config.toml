@@ -1,0 +1,3 @@
+[functions.expiry-alerts]
+# La fonction vérifie elle-même le JWT utilisateur ou le secret du planificateur.
+verify_jwt = false

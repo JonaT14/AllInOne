@@ -1,0 +1,24 @@
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --teal: #78c8cd; --ink: #ecf1f7; --muted: #bac8d6; --bg: #121d28;
+    --line: #3c4e61; --blue: #b3ccff; --soft: #223644;
+  }
+  :root[data-theme="dark"] header { background: #21535d; }
+  :root[data-theme="dark"] :is(.card, .aside-body, dialog, .apa-live, .search, .apa-field input, .apa-field select, .apa-field textarea, select, button:not(.brand,.header-button,.primary,.grade.active)) {
+    background: #1a2937;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  :root[data-theme="dark"] :is(button:not(.brand,.header-button,.primary,.grade.active):hover,.choice,.apa-canvas-wrap) {
+    background: #243646;
+    border-color: var(--line);
+  }
+  :root[data-theme="dark"] :is(.choice:has(input:checked),.info,.primary,.grade.active) {
+    background: #234b55;
+    border-color: #518f9b;
+    color: #e3fbfc;
+  }
+  :root[data-theme="dark"] :is(.test-button,a) { color: var(--blue); }
+  :root[data-theme="dark"] .alert { background: #4a2d28; color: #ffdbc7; border-color: #85594c; }
+}
